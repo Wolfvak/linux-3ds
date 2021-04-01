@@ -8,7 +8,7 @@
 
 / {
 	model = "Nintendo 3DS (CTR)";
-	compatible = "nintendo,ctr";
+	compatible = "nintendo,ctr", "nintendo,3ds";
 
 	fcram: memory@20000000 {
 		device_type = "memory";

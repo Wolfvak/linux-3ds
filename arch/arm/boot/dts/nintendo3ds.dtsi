@@ -4,7 +4,7 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 
 / {
-	compatible = "nintendo,ctr";
+	compatible = "nintendo,3ds";
 	#address-cells = <1>;
 	#size-cells = <1>;
 
