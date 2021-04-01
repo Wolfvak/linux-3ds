@@ -1,54 +1,20 @@
 /dts-v1/;
-#include <dt-bindings/interrupt-controller/arm-gic.h>
-
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
 
 / {
-	model = "Nintendo 3DS (CTR)";
 	compatible = "nintendo,ctr";
 	#address-cells = <1>;
 	#size-cells = <1>;
 
-	cpus {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		enable-method = "nintendo,ctr-smp";
-
-		cpu@0 {
-			device_type = "cpu";
-			compatible = "arm,arm11mpcore";
-			reg = <0>;
-		};
-
-		cpu@1 {
-			device_type = "cpu";
-			compatible = "arm,arm11mpcore";
-			reg = <1>;
-		};
-	};
-
-	chosen {
-		/* No FB: bootargs = "earlyprintk keep_bootcon fbcon=rotate:1 init=/init"; */
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges;
-
-		bootargs = "nr_cpus=2 keep_bootcon fbcon=rotate:1 root=/dev/ram rw earlyprintk init=init console=tty0";
-
-		display: framebuffer@18000000 {
-			compatible = "simple-framebuffer";
-			reg = <0x18000000 (400*240*3)>;
-			width = <240>;
-			height = <400>;
-			stride = <(240*3)>;
-			format = "r8g8b8";
-		};
-
-		fcram: memory@20000000 {
-			device_type = "memory";
-			reg = <0x20000000 0x08000000>;
-		};
+	display: framebuffer@18000000 {
+		compatible = "simple-framebuffer";
+		reg = <0x18000000 (400*240*3)>;
+		width = <240>;
+		height = <400>;
+		stride = <(240*3)>;
+		format = "r8g8b8";
 	};
 
 	soc {
