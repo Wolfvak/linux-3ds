@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Support for the Nintendo New 3DS.
+ */
+/dts-v1/;
+
+#include "nintendo3ds.dtsi"
+
+/ {
+	model = "Nintendo New 3DS (KTR)";
+	compatible = "nintendo,ktr", "nintendo,3ds";
+
+	fcram: memory@20000000 {
+		device_type = "memory";
+		reg = <0x20000000 0x10000000>;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		enable-method = "nintendo,ctr-smp";
+
+		cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,arm11mpcore";
+			reg = <0>;
+		};
+
+		cpu@1 {
+			device_type = "cpu";
+			compatible = "arm,arm11mpcore";
+			reg = <1>;
+		};
+
+		cpu@2 {
+			device_type = "cpu";
+			compatible = "arm,arm11mpcore";
+			reg = <2>;
+		};
+
+		cpu@3 {
+			device_type = "cpu";
+			compatible = "arm,arm11mpcore";
+			reg = <3>;
+		};
+	};
+
+	chosen {
+		bootargs = "nr_cpus=4 keep_bootcon fbcon=rotate:1 init=/bin/sh earlyprintk";
+	};
+};
