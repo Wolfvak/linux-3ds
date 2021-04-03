@@ -8,7 +8,7 @@
  * published by the Free Software Foundation.
  */
 
-#define DRIVER_NAME	"ctrmcu-regulator"
+#define DRIVER_NAME	"3dsmcu-regulator"
 #define pr_fmt(fmt)	DRIVER_NAME ": " fmt
 
 #include <linux/of.h>

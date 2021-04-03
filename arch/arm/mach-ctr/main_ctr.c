@@ -42,7 +42,7 @@ static void __init ctr_dt_init_machine(void)
 }
 
 static const char __initconst *ctr_dt_platform_compat[] = {
-	"nintendo,ctr",
+	"nintendo,3ds",
 	NULL,
 };
 

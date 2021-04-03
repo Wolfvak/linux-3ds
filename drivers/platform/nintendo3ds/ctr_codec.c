@@ -8,7 +8,7 @@
  * Licensed under the GPL-2 or later.
  */
 
-#define DRIVER_NAME	"ctrspi-codec"
+#define DRIVER_NAME	"3dsspi-codec"
 #define pr_fmt(fmt)	DRIVER_NAME ": " fmt
 
 #include <linux/input.h>

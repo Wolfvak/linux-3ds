@@ -11,7 +11,7 @@
  * published by the Free Software Foundation.
  */
 
-#define DRIVER_NAME "ctr-pxi"
+#define DRIVER_NAME "3ds-pxi"
 #define pr_fmt(str)	DRIVER_NAME ": " str
 
 #include <linux/io.h>

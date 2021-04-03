@@ -9,7 +9,7 @@
  */
 
 
-#define DRIVER_NAME "ctrmcu-powersupply"
+#define DRIVER_NAME "3dsmcu-powersupply"
 #define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/of.h>

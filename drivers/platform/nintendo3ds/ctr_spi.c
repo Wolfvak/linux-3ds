@@ -9,7 +9,7 @@
  * published by the Free Software Foundation.
  */
 
-#define DRIVER_NAME "ctr-spi"
+#define DRIVER_NAME "3ds-spi"
 #define pr_fmt(str)	DRIVER_NAME ": " str
 
 #include <linux/io.h>

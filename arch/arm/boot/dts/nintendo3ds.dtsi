@@ -27,17 +27,17 @@
 		interrupt-parent = <&gic>;
 
 		cfg: syscon@10140000 {
-			compatible = "nintendo,ctr-cfg-syscon", "syscon";
+			compatible = "nintendo,3ds-cfg-syscon", "syscon";
 			reg = <0x10140000 0x1000>;
 		};
 
 		pdn: syscon@10141000 {
-			compatible = "nintendo,ctr-pdn-syscon", "syscon";
+			compatible = "nintendo,3ds-pdn-syscon", "syscon";
 			reg = <0x10141000 0x1000>;
 		};
 
 		hid: hid-controller@10146000 {
-			compatible = "nintendo,ctr-gpio", "basic-mmio-gpio";
+			compatible = "nintendo,3ds-gpio", "basic-mmio-gpio";
 			reg = <0x10146000 0x2>;
 			reg-names = "dat";
 
@@ -48,7 +48,7 @@
 		};
 
 		pxi: virtio-bridge@10163000 {
-			compatible = "nintendo,ctr-pxi";
+			compatible = "nintendo,3ds-pxi";
 			reg = <0x10163000 0x10>;
 
 			interrupts =
@@ -58,7 +58,7 @@
 		};
 
 		gpio0: gpio-controller@10147000 {
-			compatible = "nintendo,ctr-gpio", "basic-mmio-gpio";
+			compatible = "nintendo,3ds-gpio", "basic-mmio-gpio";
 			reg = <0x10147000 0x2>;
 			reg-names = "dat";
 
@@ -69,7 +69,7 @@
 		};
 
 		gpio1: gpio-controller@10147010 {
-			compatible = "nintendo,ctr-gpio", "basic-mmio-gpio";
+			compatible = "nintendo,3ds-gpio", "basic-mmio-gpio";
 			reg = <0x10147010 0x1 0x10147011 0x1>;
 			reg-names = "dat", "dirout";
 
@@ -78,7 +78,7 @@
 		};
 
 		gpio2: gpio-controller@10147014 {
-			compatible = "nintendo,ctr-gpio", "basic-mmio-gpio";
+			compatible = "nintendo,3ds-gpio", "basic-mmio-gpio";
 			reg = <0x10147014 0x2>;
 			reg-names = "dat";
 
@@ -87,7 +87,7 @@
 		};
 
 		gpio3: gpio-controller@10147020 {
-			compatible = "nintendo,ctr-gpio", "basic-mmio-gpio";
+			compatible = "nintendo,3ds-gpio", "basic-mmio-gpio";
 			reg = <0x10147020 0x2 0x10147022 0x2>;
 			reg-names = "dat", "dirout";
 
@@ -96,7 +96,7 @@
 		};
 
 		gpio3irq: gpio-intc@10147024 {
-			compatible = "nintendo,ctr-gpiointc";
+			compatible = "nintendo,3ds-gpiointc";
 			reg = <0x10147024 0x4>;
 
 			gpios = <&gpio3 9 0>, <&gpio3 1 0>;
@@ -109,7 +109,7 @@
 		};
 
 		gpio4: gpio-controller@10147028 {
-			compatible = "nintendo,ctr-gpio", "basic-mmio-gpio";
+			compatible = "nintendo,3ds-gpio", "basic-mmio-gpio";
 			reg = <0x10147028 0x2>;
 			reg-names = "dat";
 
@@ -121,7 +121,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			compatible = "nintendo,ctr-i2c";
+			compatible = "nintendo,3ds-i2c";
 			reg = <0x10161000 0x1000>;
 
 			interrupts = <GIC_SPI 0x34 IRQ_TYPE_EDGE_RISING>;
@@ -131,7 +131,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			compatible = "nintendo,ctr-i2c";
+			compatible = "nintendo,3ds-i2c";
 			reg = <0x10144000 0x1000>;
 
 			interrupts = <GIC_SPI 0x35 IRQ_TYPE_EDGE_RISING>;
@@ -140,11 +140,11 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 
-				compatible = "nintendo,ctr-mcu";
+				compatible = "nintendo,3ds-mcu";
 				reg = <0x25>;
 
 				mcuintc: mcu-intc {
-					compatible = "nintendo,ctrmcu-intc";
+					compatible = "nintendo,3dsmcu-intc";
 
 					interrupt-controller;
 					#interrupt-cells = <2>;
@@ -154,47 +154,47 @@
 				};
 
 				led: mcu-led {
-					compatible = "nintendo,ctrmcu-led";
+					compatible = "nintendo,3dsmcu-led";
 				};
 
 				rtc: mcu-rtc {
-					compatible = "nintendo,ctrmcu-rtc";
+					compatible = "nintendo,3dsmcu-rtc";
 				};
 
 				powersupply: mcu-powersupply {
-					compatible = "nintendo,ctrmcu-powersupply";
+					compatible = "nintendo,3dsmcu-powersupply";
 				};
 
 				accelerometer: mcu-accel {
-					compatible = "nintendo,ctrmcu-accel";
+					compatible = "nintendo,3dsmcu-accel";
 				};
 
 				pwroff_reg: pwroff-regulator {
-					compatible = "nintendo,ctrmcu-regulator";
+					compatible = "nintendo,3dsmcu-regulator";
 					off = <1>;
 					delay-us = <1000000>;
 				};
 
 				reboot_reg: reset-regulator {
-					compatible = "nintendo,ctrmcu-regulator";
+					compatible = "nintendo,3dsmcu-regulator";
 					off = <4>;
 					delay-us = <1000000>;
 				};
 
 				panel_reg: panel-regulator {
-					compatible = "nintendo,ctrmcu-regulator";
+					compatible = "nintendo,3dsmcu-regulator";
 					on = <17>;
 					off = <16>;
 				};
 
 				bl_top_reg: backlight-top-regulator {
-					compatible = "nintendo,ctrmcu-regulator";
+					compatible = "nintendo,3dsmcu-regulator";
 					on = <21>;
 					off = <20>;
 				};
 
 				bl_bot_reg: backlight-bottom-regulator {
-					compatible = "nintendo,ctrmcu-regulator";
+					compatible = "nintendo,3dsmcu-regulator";
 					on = <19>;
 					off = <18>;
 				};
@@ -205,7 +205,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			compatible = "nintendo,ctr-i2c";
+			compatible = "nintendo,3ds-i2c";
 			reg = <0x10148000 0x1000>;
 
 			interrupts = <GIC_SPI 0x3C IRQ_TYPE_EDGE_RISING>;
@@ -227,13 +227,13 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			compatible = "nintendo,ctr-spi";
+			compatible = "nintendo,3ds-spi";
 			reg = <0x10142800 0x800>;
 
 			interrupts = <GIC_SPI 0x37 IRQ_TYPE_EDGE_RISING>;
 
 			ts: codec@0 {
-				compatible = "nintendo,ctrspi-codec";
+				compatible = "nintendo,3dsspi-codec";
 				reg = <0>;
 
 				spi-max-frequency = <524288>;
@@ -249,7 +249,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			compatible = "nintendo,ctr-spi";
+			compatible = "nintendo,3ds-spi";
 			reg = <0x10143800 0x800>;
 
 			interrupts = <GIC_SPI 0x04 IRQ_TYPE_EDGE_RISING>;
@@ -259,7 +259,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			compatible = "nintendo,ctr-spi";
+			compatible = "nintendo,3ds-spi";
 			reg = <0x10160800 0x800>;
 
 			interrupts = <GIC_SPI 0x36 IRQ_TYPE_EDGE_RISING>;
@@ -276,7 +276,7 @@
 			compatible = "fixed-clock";
 			#clock-cells = <0>;
 			clock-frequency = <134055928>;
-			clock-output-names = "ctr:refclk134mhz";
+			clock-output-names = "3ds:refclk134mhz";
 		};
 
 		timer: twd-timer@17E00600 {

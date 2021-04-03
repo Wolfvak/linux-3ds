@@ -8,7 +8,7 @@
  * published by the Free Software Foundation.
  */
 
-#define DRIVER_NAME "ctr-gpiointc"
+#define DRIVER_NAME "3ds-gpiointc"
 #define pr_fmt(fmt)	DRIVER_NAME ": " fmt
 
 #include <linux/io.h>

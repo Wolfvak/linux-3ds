@@ -66,4 +66,4 @@ static const struct smp_operations ctr_smp_ops __initconst = {
 	.smp_prepare_cpus	= ctr_smp_prepare_cpus,
 	.smp_boot_secondary	= ctr_smp_boot_secondary,
 };
-CPU_METHOD_OF_DECLARE(ctr_smp, "nintendo,ctr-smp", &ctr_smp_ops);
+CPU_METHOD_OF_DECLARE(ctr_smp, "nintendo,3ds-smp", &ctr_smp_ops);

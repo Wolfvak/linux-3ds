@@ -18,7 +18,7 @@
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
-		enable-method = "nintendo,ctr-smp";
+		enable-method = "nintendo,3ds-smp";
 
 		cpu@0 {
 			device_type = "cpu";
@@ -34,6 +34,6 @@
 	};
 
 	chosen {
-		bootargs = "nr_cpus=2 keep_bootcon fbcon=rotate:1 init=/bin/sh earlyprintk";
+		bootargs = "nr_cpus=2 keep_bootcon fbcon=rotate:1 rdinit=/bin/sh";
 	};
 };
