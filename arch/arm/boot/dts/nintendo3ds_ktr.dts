@@ -3,6 +3,7 @@
  * Support for:
  *   - New Nintendo 3DS    (KTR-001)
  *   - New Nintendo 3DS XL (RED-001)
+ *   - New Nintendo 2DS XL (JAN-001)
  */
 /dts-v1/;
 
