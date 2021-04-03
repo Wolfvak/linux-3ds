@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Support for the Nintendo 3DS.
+ * Support for:
+ *   - Nintendo 3DS    (CTR-001)
+ *   - Nintendo 3DS XL (SPR-001)
+ *   - Nintendo 2DS    (FTR-001)
  */
 /dts-v1/;
 

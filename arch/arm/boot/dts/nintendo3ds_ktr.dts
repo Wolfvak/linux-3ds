@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Support for the Nintendo New 3DS.
+ * Support for:
+ *   - New Nintendo 3DS    (KTR-001)
+ *   - New Nintendo 3DS XL (RED-001)
  */
 /dts-v1/;
 
