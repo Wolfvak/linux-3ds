@@ -52,6 +52,6 @@
 	};
 
 	chosen {
-		bootargs = "nr_cpus=4 keep_bootcon fbcon=rotate:1 rdinit=/bin/sh";
+		bootargs = "keep_bootcon fbcon=rotate:1 rdinit=/bin/sh";
 	};
 };
