@@ -1,8 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * ctr_codec.c
  *
- * Copyright (C) 2016 Sergi Granell (xerpi)
- * Copyright (C) 2017 Paul LaMendola (paulguy)
+ * Copyright (C) 2016 Sergi Granell
+ * Copyright (C) 2017 Paul LaMendola
+ * Copyright (C) 2020-2021 Santiago Herrera
  * based on ad7879-spi.c
  *
  * Licensed under the GPL-2 or later.

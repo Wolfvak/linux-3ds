@@ -2,7 +2,7 @@
 /*
  *  ctr_pxi.c
  *
- *  Copyright (C) 2020-2021 Wolfvak
+ *  Copyright (C) 2020-2021 Santiago Herrera
  *
  *  Based on virtio_mmio.c
  *
@@ -662,7 +662,7 @@ static struct platform_driver ctr_pxi_driver = {
 };
 module_platform_driver(ctr_pxi_driver);
 
-MODULE_AUTHOR("Wolfvak");
+MODULE_AUTHOR("Santiago Herrera");
 MODULE_DESCRIPTION("Nintendo 3DS PXI virtio bridge");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform: " DRIVER_NAME);

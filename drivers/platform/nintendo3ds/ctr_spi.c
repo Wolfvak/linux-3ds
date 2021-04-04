@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  *  ctr_spi.c
  *
- *  Copyright (C) 2016 Sergi Granell (xerpi)
- *  Copyright (C) 2019-2021 Wolfvak
+ *  Copyright (C) 2016 Sergi Granell
+ *  Copyright (C) 2019-2021 Santiago Herrera
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -264,8 +265,6 @@ static int ctr_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-MODULE_ALIAS("platform:" DRIVER_NAME);
-
 static const struct of_device_id ctr_spi_of_match[] = {
 	{ .compatible = "nintendo," DRIVER_NAME, },
 	{}
@@ -285,6 +284,6 @@ static struct platform_driver ctr_spi_driver = {
 module_platform_driver(ctr_spi_driver);
 
 MODULE_DESCRIPTION("Nintendo 3DS SPI bus driver");
-MODULE_AUTHOR("Wolfvak");
+MODULE_AUTHOR("Santiago Herrera");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" DRIVER_NAME);

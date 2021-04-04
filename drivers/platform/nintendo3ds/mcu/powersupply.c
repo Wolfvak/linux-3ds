@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  *  ctr/powersupply.c
  *
- *  Copyright (C) 2020-2021 Wolfvak
+ *  Copyright (C) 2020-2021 Santiago Herrera
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,10 +22,6 @@
 #include <linux/mod_devicetable.h>
 
 #define REGISTER_BASE	0x0A
-/* temp, cap, capfrac, voltage, subdevice, status */
-
-#define STATUS_AC_PLUGGED   BIT(3)
-#define STATUS_BAT_CHARGED  BIT(4)
 
 #define OFF_TEMPERATURE	0x00
 #define OFF_CAPACITY	0x01
@@ -32,6 +29,9 @@
 #define OFF_SYS_VOLTAGE	0x03
 #define OFF_SUB_STATUS	0x04
 #define OFF_SYS_STATUS	0x05
+
+#define STATUS_AC_PLUGGED   BIT(3)
+#define STATUS_BAT_CHARGED  BIT(4)
 
 static int ctr_mcu_powersupply_getdata(struct regmap *map, u8 *data)
 {
@@ -195,6 +195,6 @@ static struct platform_driver ctr_mcu_powersupply_driver = {
 module_platform_driver(ctr_mcu_powersupply_driver);
 
 MODULE_DESCRIPTION("Nintendo 3DS battery/AC driver");
-MODULE_AUTHOR("Wolfvak");
+MODULE_AUTHOR("Santiago Herrera");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" DRIVER_NAME);

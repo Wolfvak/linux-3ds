@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * ctr/leds.c
  *
- * Copyright (C) 2020 Wolfvak
+ * Copyright (C) 2020 Santiago Herrera
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -116,6 +117,6 @@ static struct platform_driver ctr_mcu_led_driver = {
 module_platform_driver(ctr_mcu_led_driver);
 
 MODULE_DESCRIPTION("Nintendo 3DS RGB LED driver");
-MODULE_AUTHOR("Wolfvak");
+MODULE_AUTHOR("Santiago Herrera");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" DRIVER_NAME);
