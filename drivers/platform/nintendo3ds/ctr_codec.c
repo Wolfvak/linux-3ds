@@ -6,8 +6,6 @@
  * Copyright (C) 2017 Paul LaMendola
  * Copyright (C) 2020-2021 Santiago Herrera
  * based on ad7879-spi.c
- *
- * Licensed under the GPL-2 or later.
  */
 
 #define DRIVER_NAME	"3dsspi-codec"

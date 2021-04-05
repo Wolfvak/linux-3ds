@@ -3,10 +3,6 @@
  *  ctr_i2c.c
  *
  *  Copyright (C) 2020-2021 Santiago Herrera
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
  */
 
 #define DRIVER_NAME "3ds-i2c"

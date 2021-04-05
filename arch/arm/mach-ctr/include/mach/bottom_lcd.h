@@ -1,12 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  *  Nintendo 3DS bottom_lcd.h
  *
  *  Copyright (C) 2016 Sergi Granell
  *  Copyright (C) 2017 Paul LaMendola (paulguy)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
  */
 
 #ifndef __NINTENDO3DS_BOTTOM_LCD_H
