@@ -49,15 +49,19 @@ static int ctr_smp_boot_secondary(unsigned int cpu,
 	return 0;
 }
 
-static void ctr_smp_prepare_cpus(unsigned int max_cpus)
+static void __init ctr_smp_prepare_cpus(unsigned int max_cpus)
 {
 	struct device_node *np;
 	void __iomem *scu_base;
+	unsigned int i, ncores;
 
 	np = of_find_compatible_node(NULL, NULL, "arm,arm11mp-scu");
 	if (np) {
 		scu_base = of_iomap(np, 0);
 		scu_enable(scu_base);
+		ncores = scu_get_core_count(scu_base);
+		for (i = 0; i != ncores; ++i)
+			set_cpu_possible(i, true);
 		of_node_put(np);
 	}
 }
