@@ -13,12 +13,9 @@
 	model = "Nintendo New 3DS (KTR)";
 	compatible = "nintendo,ktr", "nintendo,3ds";
 
-	// TODO: Once the bootloader can properly initialize the additional FCRAM,
-	// We can double these values.
-	// https://github.com/linux-3ds/linux/issues/1
 	fcram: memory@20000000 {
 		device_type = "memory";
-		reg = <0x20000000 0x08000000>;
+		reg = <0x20000000 0x10000000>;
 	};
 
 	cpus {
