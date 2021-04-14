@@ -141,7 +141,7 @@ static int ctr_gpiointc_probe(struct platform_device *pdev)
 	err = of_property_read_u32(dev->of_node, "ngpios", &ngpios);
 	if (err)
 		return err;
-	if (ngpios < 1 || ngpios > 3)
+	if (ngpios < 1 || ngpios > 32)
 		return -EINVAL;
 
 	gpio->ngpios = ngpios;
