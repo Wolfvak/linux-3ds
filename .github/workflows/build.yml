@@ -1,0 +1,22 @@
+name: build
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        sudo apt-get update && sudo apt-get install -y gcc-arm-linux-gnueabi binutils build-essential git flex bison libssl-dev bc axel libgmp-dev libmpc-dev zstd
+    - run: axel https://github.com/ClangBuiltLinux/boot-utils/raw/main/images/arm/rootfs.cpio.zst && zstd -d rootfs.cpio.zst && gzip rootfs.cpio && rm rootfs.cpio.zst
+    - run: make nintendo3ds_defconfig all
+      env:
+        ARCH: arm
+        CROSS_COMPILE: arm-linux-gnueabi-
+    - uses: actions/upload-artifact@v2
+      with:
+        name: linux
+        path: |
+          ./arch/arm/boot/zImage
+          ./arch/arm/boot/dts/nintendo3ds_ctr.dtb
+          ./arch/arm/boot/dts/nintendo3ds_ktr.dtb
