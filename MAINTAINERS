@@ -12570,6 +12570,18 @@ W:	http://www.netlab.is.tsukuba.ac.jp/~yokota/izumi/ninja/
 F:	Documentation/scsi/NinjaSCSI.rst
 F:	drivers/scsi/nsp32*
 
+NINTENDO 3DS
+M:	Santiago Herrera <soherrera1@hotmail.com>
+M:	Sergi Granell <xerpi.g.12@gmail.com>
+M:	Nick Desaulniers <nick.desaulniers@gmail.com>
+S:	Maintained
+W:	https://github.com/linux-3ds
+T:	git git://github.com/linux-3ds/linux
+F:	arch/arm/boot/dts/nintendo3ds*
+F:	arch/arm/mach-ctr/
+F:	arch/arm/configs/nintendo3ds_defconfig
+F:	drivers/platform/nintendo3ds/
+
 NIOS2 ARCHITECTURE
 M:	Ley Foon Tan <ley.foon.tan@intel.com>
 S:	Maintained
