@@ -1,22 +1,26 @@
-name: build
-on: [push, pull_request]
+name: "build"
+on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v2
+    - uses: "actions/checkout@v2"
+    - run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
     - run: |
         sudo apt-get update && sudo apt-get install -y gcc-arm-linux-gnueabi binutils build-essential git flex bison libssl-dev bc axel libgmp-dev libmpc-dev zstd
-    - run: axel https://github.com/ClangBuiltLinux/boot-utils/raw/main/images/arm/rootfs.cpio.zst && zstd -d rootfs.cpio.zst && gzip rootfs.cpio && rm rootfs.cpio.zst
-    - run: make nintendo3ds_defconfig all
+    - run: "axel https://github.com/ClangBuiltLinux/boot-utils/raw/main/images/arm/rootfs.cpio.zst && zstd -d rootfs.cpio.zst && gzip rootfs.cpio && rm rootfs.cpio.zst"
+    - run: "make nintendo3ds_defconfig all"
       env:
-        ARCH: arm
-        CROSS_COMPILE: arm-linux-gnueabi-
-    - uses: actions/upload-artifact@v2
+        ARCH: "arm"
+        CROSS_COMPILE: "arm-linux-gnueabi-"
+    - uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        name: linux
-        path: |
-          ./arch/arm/boot/zImage
-          ./arch/arm/boot/dts/nintendo3ds_ctr.dtb
-          ./arch/arm/boot/dts/nintendo3ds_ktr.dtb
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development build ${{ env.SHORT_SHA }}"
+        files: |
+          arch/arm/boot/zImage
+          arch/arm/boot/dts/nintendo3ds_ctr.dtb
+          arch/arm/boot/dts/nintendo3ds_ktr.dtb
