@@ -249,16 +249,19 @@
 
 			interrupts = <GIC_SPI 0x37 IRQ_TYPE_EDGE_RISING>;
 
-			ts: codec@0 {
-				compatible = "nintendo,3dsspi-codec";
+			cdc: codec@0 {
+				compatible = "nintendo,3ds-codec";
 				reg = <0>;
 
 				spi-max-frequency = <524288>;
 
-				touchscreen-size-x = <4096>;
-				touchscreen-size-y = <4096>;
-				touchscreen-inverted-y;
-				touchscreen-swapped-x-y;
+				ts: touchscreen@0 {
+					compatible = "nintendo,3dscodec-tsc";
+					touchscreen-size-x = <4096>;
+					touchscreen-size-y = <4096>;
+					touchscreen-inverted-y;
+					touchscreen-swapped-x-y;
+				};
 			};
 		};
 

@@ -51,10 +51,18 @@ config CTR_SPI
 config CTR_CODEC
 	tristate "Nintendo 3DS CODEC driver"
 	depends on CTR_SPI
+	select REGMAP
+	default y
+	help
+	  Nintendo 3DS CODEC peripheral driver.
+
+config CTR_CODEC_TOUCH
+	tristate "Nintendo 3DS touchscreen/circlepad driver"
+	depends on CTR_CODEC
 	select INPUT_POLLDEV
 	default y
 	help
-	  Nintendo 3DS touchscreen/circle pad driver.
+	  TODO
 
 
 config CTR_I2C
