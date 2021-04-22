@@ -40,7 +40,8 @@ int nintendo3ds_bottom_lcd_draw_text(const struct font_desc *font, int x, int y,
 #define LEFT_SHIFTED  BIT(0)
 #define RIGHT_SHIFTED BIT(1)
 
-#define CODEC_REG(bank, reg)	(((bank) << 7) | (reg))
+#define TSC_REG(reg)	((0x67 << 7) | (reg)) /* bank 67h, register xxh */
+#define TSC_FIFO_REG	((0xFB << 7) | 0x01) /* bank FBh, register 01h */
 
 struct vkb_ctx_t {
 	const struct font_desc *font;
@@ -63,6 +64,11 @@ struct tsc_touch_hid {
 	unsigned long touch_jiffies;
 	bool pendown;
 };
+
+struct tsc_fifo_data {
+	u16 touch[2][5];
+	u16 cpad[2][8];
+} __packed;
 
 /* VKB stuff */
 static const char *vkb_map_normal[VKB_ROWS][VKB_COLS] = {
@@ -166,35 +172,43 @@ static int vkb_init(struct vkb_ctx_t *vkb)
 }
 /* End VKB stuff */
 
-static const struct reg_sequence tsc_init_seq[] = {
-	REG_SEQ(CODEC_REG(0x67, 0x24), 0x98, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x26), 0x00, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x25), 0x43, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x24), 0x18, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x17), 0x43, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x19), 0x69, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x1B), 0x80, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x27), 0x11, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x26), 0xEC, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x24), 0x18, 10),
-	REG_SEQ(CODEC_REG(0x67, 0x25), 0x53, 10)
-};
-
-static int tsc_touch_initialize(struct regmap *map)
+static int tsc_initialize(struct regmap *map)
 {
-	int err;
-	unsigned int reg;
+	/* magic init sequence */
+	static const struct reg_sequence tsc_initseq[] = {
+		REG_SEQ(TSC_REG(0x24), 0x98, 10),
+		REG_SEQ(TSC_REG(0x26), 0x00, 10),
+		REG_SEQ(TSC_REG(0x25), 0x43, 10),
+		REG_SEQ(TSC_REG(0x24), 0x18, 10),
+		REG_SEQ(TSC_REG(0x17), 0x43, 10),
+		REG_SEQ(TSC_REG(0x19), 0x69, 10),
+		REG_SEQ(TSC_REG(0x1B), 0x80, 10),
+		REG_SEQ(TSC_REG(0x27), 0x11, 10),
+		REG_SEQ(TSC_REG(0x26), 0xEC, 10),
+		REG_SEQ(TSC_REG(0x24), 0x18, 10),
+		REG_SEQ(TSC_REG(0x25), 0x53, 10)
+	};
 
-	err = regmap_multi_reg_write(map, tsc_init_seq, ARRAY_SIZE(tsc_init_seq));
+	return regmap_multi_reg_write(map, tsc_initseq, ARRAY_SIZE(tsc_initseq));
+}
+
+static int tsc_enable(struct regmap *map)
+{
+	int err = regmap_update_bits(map, TSC_REG(0x26), 0x80, 0x80);
 	if (err) return err;
 
-	err = regmap_update_bits(map, CODEC_REG(0x67, 0x26), 0x80, 0x80);
+	err = regmap_update_bits(map, TSC_REG(0x24), 0x80, 0x00);
 	if (err) return err;
 
-	err = regmap_update_bits(map, CODEC_REG(0x67, 0x24), 0x80, 0x00);
+	return regmap_update_bits(map, TSC_REG(0x25), 0x3C, 0x10);
+}
+
+static int tsc_disable(struct regmap *map)
+{
+	int err = regmap_update_bits(map, TSC_REG(0x26), 0x80, 0x00);
 	if (err) return err;
 
-	return regmap_update_bits(map, CODEC_REG(0x67, 0x25), 0x3C, 0x10);
+	return regmap_update_bits(map, TSC_REG(0x24), 0x80, 0x80);
 }
 
 static int tsc_touch_request_data(struct regmap *map, u8 *buffer)
@@ -203,12 +217,15 @@ static int tsc_touch_request_data(struct regmap *map, u8 *buffer)
 	unsigned int reg;
 
 	/* acknowledge tsc? */
-	err = regmap_read(map, CODEC_REG(0x67, 0x26), &reg);
+	err = regmap_read(map, TSC_REG(0x26), &reg);
 	if (err) return err;
 
-	return regmap_bulk_read(map, CODEC_REG(0xFB, 0x01), buffer, 0x34);
+	/* no new data available */
+	if (reg & BIT(1))
+		return -ENODATA;
+
+	return regmap_bulk_read(map, TSC_FIFO_REG, buffer, 0x34);
 }
-/* End SPI stuff */
 
 static void tsc_touch_input_poll(struct input_dev *input)
 {
@@ -227,8 +244,16 @@ static void tsc_touch_input_poll(struct input_dev *input)
 	int i, j, err;
 
 	err = tsc_touch_request_data(codec_hid->map, raw_data);
-	if (err)
+	if (err == -ENODATA)
 		return;
+
+	if (err) {
+		/*
+			something bad happened
+			TODO: reboot the controller or something?
+		*/
+		return;
+	}
 
 	raw_circlepad_x =
 		(s16)le16_to_cpu(((raw_data[0x24] << 8) | raw_data[0x25]) & 0xFFF) - 2048;
@@ -386,7 +411,10 @@ static int tsc_touch_hid_probe(struct platform_device *pdev)
 	codec_hid->input_dev = input;
 	platform_set_drvdata(pdev, codec_hid);
 
-	err = tsc_touch_initialize(codec_hid->map);
+	err = tsc_initialize(codec_hid->map);
+	if (!err)
+		err = tsc_enable(codec_hid->map);
+
 	if (err) {
 		pr_err("failed to initialize hardware (%d)\n", err);
 		return err;

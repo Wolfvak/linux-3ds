@@ -18,16 +18,18 @@ struct ctr_codec {
 
 static inline int ctr_codec_switch_bank(struct ctr_codec *cdc, const u8 *bank)
 {
-	int err;
 	u8 banksel[2];
+	int err, bank_id;
 
-	if (cdc->banksel == *bank)
+	bank_id = *bank;
+
+	if (cdc->banksel == bank_id)
 		return 0;
 
 	banksel[0] = 0; /* register 0, write */
-	banksel[1] = *bank;
+	banksel[1] = bank_id;
 	err = spi_write(cdc->spi, banksel, 2);
-	cdc->banksel = err ? -1 : *bank;
+	cdc->banksel = err ? -1 : bank_id;
 	return err;
 }
 
@@ -68,7 +70,26 @@ static inline int ctr_codec_gather_write(void *context,
 										const void *reg, size_t reg_len,
 										const void *val, size_t val_len)
 {
-	return -ENOTSUPP; /* to be implemented */
+	int err;
+	struct spi_transfer xfer[2];
+	struct ctr_codec *cdc = context;
+
+	if (reg_len != 2)
+		return -ENOTSUPP;
+
+	err = ctr_codec_switch_bank(cdc, reg);
+	if (err)
+		return err;
+
+	memset(xfer, 0, sizeof(xfer));
+
+	xfer[0].tx_buf = reg + 1;
+	xfer[0].len = 1;
+
+	xfer[1].tx_buf = val;
+	xfer[1].len = val_len;
+
+	return spi_sync_transfer(cdc->spi, xfer, 2);
 }
 
 static const struct regmap_bus ctr_codec_map_bus = {
@@ -81,7 +102,7 @@ static const struct regmap_bus ctr_codec_map_bus = {
 };
 
 static const struct regmap_config ctr_codec_map_cfg = {
-	.reg_bits = 15, /* [8:7:1] = [page:index:read] */
+	.reg_bits = 15, /* [8:7:1] = [page:index:read], byteswapped */
 	.pad_bits = 1,
 
 	.val_bits = 8,
@@ -97,7 +118,6 @@ static int ctr_codec_probe(struct spi_device *spi)
 {
 	struct device *dev;
 	struct regmap *map;
-
 	struct ctr_codec *cdc;
 
 	dev = &spi->dev;
@@ -107,7 +127,7 @@ static int ctr_codec_probe(struct spi_device *spi)
 
 	cdc->dev = dev;
 	cdc->spi = spi;
-	cdc->banksel = -1;
+	cdc->banksel = -1; /* don't assume any selected bank by default */
 
 	map = devm_regmap_init(dev, &ctr_codec_map_bus, cdc, &ctr_codec_map_cfg);
 	if (IS_ERR(map))
@@ -132,6 +152,6 @@ static struct spi_driver ctr_codec_driver = {
 module_spi_driver(ctr_codec_driver);
 
 MODULE_AUTHOR("Santiago Herrera");
-MODULE_DESCRIPTION("Nintendo 3DS TSC regmap driver");
+MODULE_DESCRIPTION("Nintendo 3DS CODEC regmap driver");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:" DRIVER_NAME);
