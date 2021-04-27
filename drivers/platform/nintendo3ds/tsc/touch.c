@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * codec/tsc.c
+ * codec/touch.c
  *
  * Copyright (C) 2016 Sergi Granell
  * Copyright (C) 2017 Paul LaMendola
@@ -8,7 +8,7 @@
  * based on ad7879-spi.c
  */
 
-#define DRIVER_NAME	"3dscodec-tsc"
+#define DRIVER_NAME	"3dstsc-touch"
 #define pr_fmt(fmt)	DRIVER_NAME ": " fmt
 
 #include <linux/of.h>
@@ -40,8 +40,8 @@ int nintendo3ds_bottom_lcd_draw_text(const struct font_desc *font, int x, int y,
 #define LEFT_SHIFTED  BIT(0)
 #define RIGHT_SHIFTED BIT(1)
 
-#define TSC_REG(reg)	((0x67 << 7) | (reg)) /* bank 67h, register xxh */
-#define TSC_FIFO_REG	((0xFB << 7) | 0x01) /* bank FBh, register 01h */
+#define TOUCH_REG(reg)	((0x67 << 7) | (reg)) /* bank 67h, register xxh */
+#define TOUCH_FIFO_REG	((0xFB << 7) | 0x01) /* bank FBh, register 01h */
 
 struct vkb_ctx_t {
 	const struct font_desc *font;
@@ -55,7 +55,7 @@ struct vkb_ctx_t {
 	char shifted;
 };
 
-struct tsc_touch_hid {
+struct touch_hid {
 	struct device *dev;
 	struct regmap *map;
 	struct input_dev *input_dev;
@@ -65,7 +65,7 @@ struct tsc_touch_hid {
 	bool pendown;
 };
 
-struct tsc_fifo_data {
+struct touch_fifo_data {
 	u16 touch[2][5];
 	u16 cpad[2][8];
 } __packed;
@@ -172,64 +172,64 @@ static int vkb_init(struct vkb_ctx_t *vkb)
 }
 /* End VKB stuff */
 
-static int tsc_initialize(struct regmap *map)
+static int touch_initialize(struct regmap *map)
 {
 	/* magic init sequence */
-	static const struct reg_sequence tsc_initseq[] = {
-		REG_SEQ(TSC_REG(0x24), 0x98, 10),
-		REG_SEQ(TSC_REG(0x26), 0x00, 10),
-		REG_SEQ(TSC_REG(0x25), 0x43, 10),
-		REG_SEQ(TSC_REG(0x24), 0x18, 10),
-		REG_SEQ(TSC_REG(0x17), 0x43, 10),
-		REG_SEQ(TSC_REG(0x19), 0x69, 10),
-		REG_SEQ(TSC_REG(0x1B), 0x80, 10),
-		REG_SEQ(TSC_REG(0x27), 0x11, 10),
-		REG_SEQ(TSC_REG(0x26), 0xEC, 10),
-		REG_SEQ(TSC_REG(0x24), 0x18, 10),
-		REG_SEQ(TSC_REG(0x25), 0x53, 10)
+	static const struct reg_sequence initseq[] = {
+		REG_SEQ(TOUCH_REG(0x24), 0x98, 10),
+		REG_SEQ(TOUCH_REG(0x26), 0x00, 10),
+		REG_SEQ(TOUCH_REG(0x25), 0x43, 10),
+		REG_SEQ(TOUCH_REG(0x24), 0x18, 10),
+		REG_SEQ(TOUCH_REG(0x17), 0x43, 10),
+		REG_SEQ(TOUCH_REG(0x19), 0x69, 10),
+		REG_SEQ(TOUCH_REG(0x1B), 0x80, 10),
+		REG_SEQ(TOUCH_REG(0x27), 0x11, 10),
+		REG_SEQ(TOUCH_REG(0x26), 0xEC, 10),
+		REG_SEQ(TOUCH_REG(0x24), 0x18, 10),
+		REG_SEQ(TOUCH_REG(0x25), 0x53, 10)
 	};
 
-	return regmap_multi_reg_write(map, tsc_initseq, ARRAY_SIZE(tsc_initseq));
+	return regmap_multi_reg_write(map, initseq, ARRAY_SIZE(initseq));
 }
 
-static int tsc_enable(struct regmap *map)
+static int touch_enable(struct regmap *map)
 {
-	int err = regmap_update_bits(map, TSC_REG(0x26), 0x80, 0x80);
+	int err = regmap_update_bits(map, TOUCH_REG(0x26), 0x80, 0x80);
 	if (err) return err;
 
-	err = regmap_update_bits(map, TSC_REG(0x24), 0x80, 0x00);
+	err = regmap_update_bits(map, TOUCH_REG(0x24), 0x80, 0x00);
 	if (err) return err;
 
-	return regmap_update_bits(map, TSC_REG(0x25), 0x3C, 0x10);
+	return regmap_update_bits(map, TOUCH_REG(0x25), 0x3C, 0x10);
 }
 
-static int tsc_disable(struct regmap *map)
+static int touch_disable(struct regmap *map)
 {
-	int err = regmap_update_bits(map, TSC_REG(0x26), 0x80, 0x00);
+	int err = regmap_update_bits(map, TOUCH_REG(0x26), 0x80, 0x00);
 	if (err) return err;
 
-	return regmap_update_bits(map, TSC_REG(0x24), 0x80, 0x80);
+	return regmap_update_bits(map, TOUCH_REG(0x24), 0x80, 0x80);
 }
 
-static int tsc_touch_request_data(struct regmap *map, u8 *buffer)
+static int touch_request_data(struct regmap *map, u8 *buffer)
 {
 	int err;
 	unsigned int reg;
 
-	/* acknowledge tsc? */
-	err = regmap_read(map, TSC_REG(0x26), &reg);
+	/* acknowledge touch? */
+	err = regmap_read(map, TOUCH_REG(0x26), &reg);
 	if (err) return err;
 
 	/* no new data available */
 	if (reg & BIT(1))
 		return -ENODATA;
 
-	return regmap_bulk_read(map, TSC_FIFO_REG, buffer, 0x34);
+	return regmap_bulk_read(map, TOUCH_FIFO_REG, buffer, 0x34);
 }
 
-static void tsc_touch_input_poll(struct input_dev *input)
+static void touch_input_poll(struct input_dev *input)
 {
-	struct tsc_touch_hid *codec_hid = input_get_drvdata(input);
+	struct touch_hid *codec_hid = input_get_drvdata(input);
 	struct vkb_ctx_t *vkb = &codec_hid->vkb;
 
 	u8 raw_data[0x40] __attribute__((aligned(sizeof(u32))));
@@ -243,7 +243,7 @@ static void tsc_touch_input_poll(struct input_dev *input)
 	bool sync = false;
 	int i, j, err;
 
-	err = tsc_touch_request_data(codec_hid->map, raw_data);
+	err = touch_request_data(codec_hid->map, raw_data);
 	if (err == -ENODATA)
 		return;
 
@@ -356,14 +356,14 @@ static void tsc_touch_input_poll(struct input_dev *input)
 		input_sync(input);
 }
 
-static int tsc_touch_hid_probe(struct platform_device *pdev)
+static int touch_hid_probe(struct platform_device *pdev)
 {
 	int err;
 	int i, j;
 	struct device *dev;
 	struct input_dev *input;
 	struct regmap *map;
-	struct tsc_touch_hid *codec_hid;
+	struct touch_hid *codec_hid;
 
 	dev = &pdev->dev;
 
@@ -411,16 +411,16 @@ static int tsc_touch_hid_probe(struct platform_device *pdev)
 	codec_hid->input_dev = input;
 	platform_set_drvdata(pdev, codec_hid);
 
-	err = tsc_initialize(codec_hid->map);
+	err = touch_initialize(codec_hid->map);
 	if (!err)
-		err = tsc_enable(codec_hid->map);
+		err = touch_enable(codec_hid->map);
 
 	if (err) {
 		pr_err("failed to initialize hardware (%d)\n", err);
 		return err;
 	}
 
-	err = input_setup_polling(input, tsc_touch_input_poll);
+	err = input_setup_polling(input, touch_input_poll);
 	if (err) {
 		pr_err("failed to setup polling (%d)\n", err);
 		return err;
@@ -439,22 +439,22 @@ static int tsc_touch_hid_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tsc_touch_hid_dt_ids[] = {
+static const struct of_device_id touch_hid_dt_ids[] = {
 	{ .compatible = "nintendo," DRIVER_NAME, },
 	{ }
 };
-MODULE_DEVICE_TABLE(of, tsc_touch_hid_dt_ids);
+MODULE_DEVICE_TABLE(of, touch_hid_dt_ids);
 
-static struct platform_driver tsc_touch_hid_driver = {
-	.probe = tsc_touch_hid_probe,
+static struct platform_driver touch_hid_driver = {
+	.probe = touch_hid_probe,
 
 	.driver = {
 		.name	= DRIVER_NAME,
 		.owner	= THIS_MODULE,
-		.of_match_table	= of_match_ptr(tsc_touch_hid_dt_ids),
+		.of_match_table	= of_match_ptr(touch_hid_dt_ids),
 	},
 };
-module_platform_driver(tsc_touch_hid_driver);
+module_platform_driver(touch_hid_driver);
 
 MODULE_AUTHOR("Sergi Granell <xerpi.g.12@gmail.com>, Santiago Herrera");
 MODULE_DESCRIPTION("Nintendo 3DS touchscreen/circlepad driver");

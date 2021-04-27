@@ -249,14 +249,19 @@
 
 			interrupts = <GIC_SPI 0x37 IRQ_TYPE_EDGE_RISING>;
 
-			cdc: codec@0 {
-				compatible = "nintendo,3ds-codec";
+			tsc: tsc@0 {
+				compatible = "nintendo,3ds-tsc";
 				reg = <0>;
 
-				spi-max-frequency = <524288>;
+				/* TSC can actually go up to 50MHz */
+				spi-max-frequency = <16777216>;
 
-				ts: touchscreen@0 {
-					compatible = "nintendo,3dscodec-tsc";
+				codec: audio-codec {
+					compatible = "nintendo,3dstsc-codec";
+				};
+
+				touch: touchscreen {
+					compatible = "nintendo,3dstsc-touch";
 					touchscreen-size-x = <4096>;
 					touchscreen-size-y = <4096>;
 					touchscreen-inverted-y;

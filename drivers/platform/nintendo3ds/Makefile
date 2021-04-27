@@ -5,8 +5,8 @@ obj-$(CONFIG_CTR_SDHC)	+= ctr_sdhc.o
 obj-$(CONFIG_CTR_PXI)	+= ctr_pxi.o
 
 obj-$(CONFIG_CTR_SPI)	+= ctr_spi.o
-obj-$(CONFIG_CTR_CODEC)	+= ctr_codec.o
-obj-$(CONFIG_CTR_CODEC_TOUCH)	+= codec/tsc.o
+obj-$(CONFIG_CTR_TSC)	+= ctr_tsc.o
+obj-$(CONFIG_CTR_TSC_TOUCH)	+= tsc/touch.o
 
 obj-$(CONFIG_CTR_I2C)	+= ctr_i2c.o
 
