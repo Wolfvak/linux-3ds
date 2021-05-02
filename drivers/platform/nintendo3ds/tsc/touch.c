@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * codec/touch.c
+ * tsc/touch.c
  *
  * Copyright (C) 2016 Sergi Granell
  * Copyright (C) 2017 Paul LaMendola
@@ -91,7 +91,7 @@ static const char vkb_map_keys[VKB_ROWS][VKB_COLS] = {
 	{KEY_ESC, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_F10, KEY_F11, KEY_F12, KEY_SYSRQ, KEY_SCROLLLOCK, KEY_PAUSE},
 	{KEY_GRAVE, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0, KEY_MINUS, KEY_EQUAL, KEY_BACKSPACE, KEY_INSERT, KEY_HOME, KEY_PAGEUP},
 	{KEY_TAB, KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y, KEY_U, KEY_I, KEY_O, KEY_P, KEY_LEFTBRACE, KEY_RIGHTBRACE, KEY_BACKSLASH, KEY_DELETE, KEY_END, KEY_PAGEDOWN},
-	{KEY_CAPSLOCK, KEY_A, KEY_S, KEY_D, KEY_F, KEY_G, KEY_H, KEY_J, KEY_K, KEY_L, KEY_SEMICOLON, KEY_COMMA, KEY_ENTER, 0, 0, 0, 0},
+	{KEY_CAPSLOCK, KEY_A, KEY_S, KEY_D, KEY_F, KEY_G, KEY_H, KEY_J, KEY_K, KEY_L, KEY_SEMICOLON, KEY_APOSTROPHE, KEY_ENTER, 0, 0, 0, 0},
 	{KEY_LEFTSHIFT, KEY_Z, KEY_X, KEY_C, KEY_V, KEY_B, KEY_N, KEY_M, KEY_COMMA, KEY_DOT, KEY_SLASH, KEY_RIGHTSHIFT, 0, 0, 0, 0, 0},
 	{KEY_LEFTCTRL, KEY_LEFTMETA, KEY_LEFTALT, KEY_SPACE, KEY_RIGHTALT, KEY_RIGHTMETA, KEY_MENU, KEY_RIGHTCTRL, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
@@ -229,8 +229,8 @@ static int touch_request_data(struct regmap *map, u8 *buffer)
 
 static void touch_input_poll(struct input_dev *input)
 {
-	struct touch_hid *codec_hid = input_get_drvdata(input);
-	struct vkb_ctx_t *vkb = &codec_hid->vkb;
+	struct touch_hid *touch_hid = input_get_drvdata(input);
+	struct vkb_ctx_t *vkb = &touch_hid->vkb;
 
 	u8 raw_data[0x40] __attribute__((aligned(sizeof(u32))));
 	bool pendown;
@@ -243,7 +243,7 @@ static void touch_input_poll(struct input_dev *input)
 	bool sync = false;
 	int i, j, err;
 
-	err = touch_request_data(codec_hid->map, raw_data);
+	err = touch_request_data(touch_hid->map, raw_data);
 	if (err == -ENODATA)
 		return;
 
@@ -275,7 +275,7 @@ static void touch_input_poll(struct input_dev *input)
 	pendown = !(raw_data[0] & BIT(4));
 
 	if (pendown) {
-		if(!codec_hid->pendown) {
+		if(!touch_hid->pendown) {
 			raw_touch_x = le16_to_cpu((raw_data[0]  << 8) | raw_data[1]);
 			raw_touch_y = le16_to_cpu((raw_data[10] << 8) | raw_data[11]);
 
@@ -289,9 +289,9 @@ static void touch_input_poll(struct input_dev *input)
 					   screen_touch_x < vkb->x_offsets[j][i] + vkb->x_sizes[j][i] &&
 					   screen_touch_y >= j * vkb->font->height * 2 &&
 					   screen_touch_y < (j + 1) * vkb->font->height * 2) {
-						codec_hid->pendown = true;
+						touch_hid->pendown = true;
 
-						codec_hid->touch_jiffies = jiffies;
+						touch_hid->touch_jiffies = jiffies;
 
 						vkb->last_key = vkb_map_keys[j][i];
 						if(vkb->key_locked[j][i / sizeof(int)] & BIT(i % sizeof(int))) {
@@ -322,7 +322,7 @@ static void touch_input_poll(struct input_dev *input)
 				}
 			}
 		} else {
-			if(!vkb->locked_key && time_is_before_jiffies(codec_hid->touch_jiffies + msecs_to_jiffies(500))) {
+			if(!vkb->locked_key && time_is_before_jiffies(touch_hid->touch_jiffies + msecs_to_jiffies(500))) {
 				vkb->key_locked[vkb->held_row][vkb->held_col / sizeof(int)] |= BIT(vkb->held_col % sizeof(int));
 				vkb->locked_key = true;
 
@@ -338,7 +338,7 @@ static void touch_input_poll(struct input_dev *input)
 			}
 		}
 	} else {
-		codec_hid->pendown = false;
+		touch_hid->pendown = false;
 
 		if(vkb->locked_key) {
 			vkb->locked_key = false;
@@ -363,7 +363,7 @@ static int touch_hid_probe(struct platform_device *pdev)
 	struct device *dev;
 	struct input_dev *input;
 	struct regmap *map;
-	struct touch_hid *codec_hid;
+	struct touch_hid *touch_hid;
 
 	dev = &pdev->dev;
 
@@ -371,8 +371,8 @@ static int touch_hid_probe(struct platform_device *pdev)
 	if (!map)
 		return -ENODEV;
 
-	codec_hid = devm_kzalloc(dev, sizeof(*codec_hid), GFP_KERNEL);
-	if (!codec_hid) {
+	touch_hid = devm_kzalloc(dev, sizeof(*touch_hid), GFP_KERNEL);
+	if (!touch_hid) {
 		pr_err("failed to allocate memory for driver");
 		return -ENOMEM;
 	}
@@ -383,8 +383,8 @@ static int touch_hid_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	input_set_drvdata(input, codec_hid);
-	input->name = "Nintendo 3DS CODEC HID";
+	input_set_drvdata(input, touch_hid);
+	input->name = "Nintendo 3DS touch HID";
 	input->phys = DRIVER_NAME "/input0";
 
 	input->dev.parent = dev;
@@ -407,13 +407,13 @@ static int touch_hid_probe(struct platform_device *pdev)
 		}
 	}
 
-	codec_hid->map = map;
-	codec_hid->input_dev = input;
-	platform_set_drvdata(pdev, codec_hid);
+	touch_hid->map = map;
+	touch_hid->input_dev = input;
+	platform_set_drvdata(pdev, touch_hid);
 
-	err = touch_initialize(codec_hid->map);
+	err = touch_initialize(touch_hid->map);
 	if (!err)
-		err = touch_enable(codec_hid->map);
+		err = touch_enable(touch_hid->map);
 
 	if (err) {
 		pr_err("failed to initialize hardware (%d)\n", err);
@@ -434,7 +434,7 @@ static int touch_hid_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	vkb_init(&codec_hid->vkb);
+	vkb_init(&touch_hid->vkb);
 
 	return 0;
 }

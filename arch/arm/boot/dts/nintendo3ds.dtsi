@@ -256,10 +256,6 @@
 				/* TSC can actually go up to 50MHz */
 				spi-max-frequency = <16777216>;
 
-				codec: audio-codec {
-					compatible = "nintendo,3dstsc-codec";
-				};
-
 				touch: touchscreen {
 					compatible = "nintendo,3dstsc-touch";
 					touchscreen-size-x = <4096>;
