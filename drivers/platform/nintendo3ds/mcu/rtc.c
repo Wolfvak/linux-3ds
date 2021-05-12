@@ -17,15 +17,18 @@
 #include <linux/platform_device.h>
 #include <linux/mod_devicetable.h>
 
-#define REGISTER_RTC	0x30
+struct ctr_rtc {
+	struct regmap *map;
+	unsigned io_addr;
+};
 
-static int ctr_mcu_rtc_get_time(struct device *dev, struct rtc_time *tm)
+static int ctr_rtc_get_time(struct device *dev, struct rtc_time *tm)
 {
 	int err;
 	u8 buf[8];
-	struct regmap *regmap = dev_get_drvdata(dev);
+	struct ctr_rtc *rtc = dev_get_drvdata(dev);
 
-	err = regmap_raw_read(regmap, REGISTER_RTC, buf, 7);
+	err = regmap_bulk_read(rtc->map, rtc->io_addr, buf, 7);
 	if (err)
 		return err;
 
@@ -38,10 +41,10 @@ static int ctr_mcu_rtc_get_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static int ctr_mcu_rtc_set_time(struct device *dev, struct rtc_time *tm)
+static int ctr_rtc_set_time(struct device *dev, struct rtc_time *tm)
 {
 	u8 buf[8];
-	struct regmap *regmap = dev_get_drvdata(dev);
+	struct ctr_rtc *rtc = dev_get_drvdata(dev);
 
 	buf[0] = bin2bcd(tm->tm_sec);
 	buf[1] = bin2bcd(tm->tm_min);
@@ -50,19 +53,20 @@ static int ctr_mcu_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	buf[5] = bin2bcd(tm->tm_mon + 1);
 	buf[6] = bin2bcd(tm->tm_year - 100);
 
-	return regmap_raw_write(regmap, REGISTER_RTC, buf, 7);
+	return regmap_bulk_write(rtc->map, rtc->io_addr, buf, 7);
 }
 
-static const struct rtc_class_ops ctr_mcu_rtc_ops = {
-	.read_time	= ctr_mcu_rtc_get_time,
-	.set_time	= ctr_mcu_rtc_set_time,
+static const struct rtc_class_ops ctr_rtc_ops = {
+	.read_time	= ctr_rtc_get_time,
+	.set_time	= ctr_rtc_set_time,
 };
 
-static int ctr_mcu_rtc_probe(struct platform_device *pdev)
-{	
+static int ctr_rtc_probe(struct platform_device *pdev)
+{
+	u32 io_addr;
 	struct device *dev;
+	struct ctr_rtc *rtc;
 	struct regmap *regmap;
-	struct rtc_device *rtc;
 
 	dev = &pdev->dev;
 	if (!dev->parent)
@@ -72,32 +76,43 @@ static int ctr_mcu_rtc_probe(struct platform_device *pdev)
 	if (!regmap)
 		return -ENODEV;
 
-	platform_set_drvdata(pdev, regmap);
+	if (of_property_read_u32(dev->of_node, "reg", &io_addr))
+		return -EINVAL;
 
-	rtc = devm_rtc_device_register(dev, DRIVER_NAME,
-		&ctr_mcu_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc))
-		return PTR_ERR(rtc);
+	rtc = devm_kzalloc(dev, sizeof(*rtc), GFP_KERNEL);
+	if (!rtc)
+		return -ENOMEM;
 
+	rtc->map = regmap;
+	rtc->io_addr = io_addr;
+	platform_set_drvdata(pdev, rtc);
+
+	return PTR_ERR_OR_ZERO(devm_rtc_device_register(
+		dev, dev_name(dev), &ctr_rtc_ops, THIS_MODULE));
+}
+
+static int ctr_rtc_remove(struct platform_device *pdev)
+{
 	return 0;
 }
 
-static const struct of_device_id ctr_mcu_rtc_of_match[] = {
+static const struct of_device_id ctr_rtc_of_match[] = {
 	{ .compatible = "nintendo," DRIVER_NAME, },
 	{}
 };
-MODULE_DEVICE_TABLE(of, ctr_mcu_rtc_of_match);
+MODULE_DEVICE_TABLE(of, ctr_rtc_of_match);
 
-static struct platform_driver ctr_mcu_rtc_driver = {
-	.probe = ctr_mcu_rtc_probe,
+static struct platform_driver ctr_rtc_driver = {
+	.probe = ctr_rtc_probe,
+	.remove = ctr_rtc_remove,
 
 	.driver = {
 		.name = DRIVER_NAME,
 		.owner = THIS_MODULE,
-		.of_match_table = of_match_ptr(ctr_mcu_rtc_of_match),
+		.of_match_table = of_match_ptr(ctr_rtc_of_match),
 	},
 };
-module_platform_driver(ctr_mcu_rtc_driver);
+module_platform_driver(ctr_rtc_driver);
 
 MODULE_DESCRIPTION("Nintendo 3DS MCU Real Time Clock driver");
 MODULE_AUTHOR("Santiago Herrera");

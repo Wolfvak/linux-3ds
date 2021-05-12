@@ -17,98 +17,87 @@
 #include <linux/platform_device.h>
 #include <linux/mod_devicetable.h>
 
-#define REG_IP	0x10
-#define REG_IE	0x18
-
-struct ctr_mcu_intc {
-	struct regmap *regmap;
-	struct regmap_irq_chip chip;
-	struct regmap_irq_chip_data *data;
-};
+#define OFFSET_STAT	0x00
+#define OFFSET_MASK	0x08
 
 static const struct regmap_irq ctr_mcu_irqs[] = {
-	REGMAP_IRQ_REG_LINE(0, 8),
-	REGMAP_IRQ_REG_LINE(1, 8),
-	REGMAP_IRQ_REG_LINE(2, 8),
-	REGMAP_IRQ_REG_LINE(3, 8),
-	REGMAP_IRQ_REG_LINE(4, 8),
-	REGMAP_IRQ_REG_LINE(5, 8),
-	REGMAP_IRQ_REG_LINE(6, 8),
-	REGMAP_IRQ_REG_LINE(7, 8),
-	REGMAP_IRQ_REG_LINE(8, 8),
-	REGMAP_IRQ_REG_LINE(9, 8),
-	REGMAP_IRQ_REG_LINE(10, 8),
-	REGMAP_IRQ_REG_LINE(11, 8),
-	REGMAP_IRQ_REG_LINE(12, 8),
-	REGMAP_IRQ_REG_LINE(13, 8),
-	REGMAP_IRQ_REG_LINE(14, 8),
-	REGMAP_IRQ_REG_LINE(15, 8),
-	REGMAP_IRQ_REG_LINE(16, 8),
-	REGMAP_IRQ_REG_LINE(17, 8),
-	REGMAP_IRQ_REG_LINE(18, 8),
-	REGMAP_IRQ_REG_LINE(19, 8),
-	REGMAP_IRQ_REG_LINE(20, 8),
-	REGMAP_IRQ_REG_LINE(21, 8),
-	REGMAP_IRQ_REG_LINE(22, 8),
-	REGMAP_IRQ_REG_LINE(23, 8),
-	REGMAP_IRQ_REG_LINE(24, 8),
-	REGMAP_IRQ_REG_LINE(25, 8),
-	REGMAP_IRQ_REG_LINE(26, 8),
-	REGMAP_IRQ_REG_LINE(27, 8),
-	REGMAP_IRQ_REG_LINE(28, 8),
-	REGMAP_IRQ_REG_LINE(29, 8),
-	REGMAP_IRQ_REG_LINE(30, 8),
-	REGMAP_IRQ_REG_LINE(31, 8)
+	REGMAP_IRQ_REG_LINE(0, 8), // power button press
+	REGMAP_IRQ_REG_LINE(1, 8), // power button held
+	REGMAP_IRQ_REG_LINE(2, 8), // home button press
+	REGMAP_IRQ_REG_LINE(3, 8), // home button release
+	REGMAP_IRQ_REG_LINE(4, 8), // wifi switch
+	REGMAP_IRQ_REG_LINE(5, 8), // shell close
+	REGMAP_IRQ_REG_LINE(6, 8), // shell open
+	//REGMAP_IRQ_REG_LINE(7, 8), // fatal condition
+	//REGMAP_IRQ_REG_LINE(8, 8), // charger removed
+	//REGMAP_IRQ_REG_LINE(9, 8), // charger plugged in
+	//REGMAP_IRQ_REG_LINE(10, 8), // rtc alarm
+	//REGMAP_IRQ_REG_LINE(11, 8),
+	//REGMAP_IRQ_REG_LINE(12, 8),
+	//REGMAP_IRQ_REG_LINE(13, 8),
+	//REGMAP_IRQ_REG_LINE(14, 8),
+	//REGMAP_IRQ_REG_LINE(15, 8),
+	//REGMAP_IRQ_REG_LINE(16, 8),
+	//REGMAP_IRQ_REG_LINE(17, 8),
+	//REGMAP_IRQ_REG_LINE(18, 8),
+	//REGMAP_IRQ_REG_LINE(19, 8),
+	//REGMAP_IRQ_REG_LINE(20, 8),
+	//REGMAP_IRQ_REG_LINE(21, 8),
+	REGMAP_IRQ_REG_LINE(22, 8), // volume slider change
+	//REGMAP_IRQ_REG_LINE(23, 8),
+	//REGMAP_IRQ_REG_LINE(24, 8),
+	//REGMAP_IRQ_REG_LINE(25, 8),
+	//REGMAP_IRQ_REG_LINE(26, 8),
+	//REGMAP_IRQ_REG_LINE(27, 8),
+	//REGMAP_IRQ_REG_LINE(28, 8),
+	//REGMAP_IRQ_REG_LINE(29, 8),
+	//REGMAP_IRQ_REG_LINE(30, 8),
+	//REGMAP_IRQ_REG_LINE(31, 8)
 	// there's 32 possible interrupts
 	// spread out on 4 8bit registers
-};
-
-static const struct regmap_irq_chip ctr_mcu_irqchip = {
-	.name = DRIVER_NAME,
-
-	.irqs = ctr_mcu_irqs,
-	.num_irqs = ARRAY_SIZE(ctr_mcu_irqs),
-	.num_regs = 4,
-
-	.status_base = REG_IP,
-	.mask_base = REG_IE,
-	.mask_invert = false,
-	.mask_writeonly = true,
-
-	.init_ack_masked = true,
-	.ack_base = 0,
-	.use_ack = false, // acknowledged on clear
 };
 
 static int ctr_mcu_intc_probe(struct platform_device *pdev)
 {
 	int irq;
+	u32 io_base;
 	struct device *dev;
-	struct regmap *regmap;
-	struct ctr_mcu_intc *mcu_intc;
+	struct regmap *map;
+	struct regmap_irq_chip *irqc;
+	struct regmap_irq_chip_data *data;
 
 	dev = &pdev->dev;
 	if (!dev->parent)
 		return -ENODEV;
 
-	regmap = dev_get_regmap(dev->parent, NULL);
-	if (!regmap)
+	map = dev_get_regmap(dev->parent, NULL);
+	if (!map)
 		return -ENODEV;
+
+	if (of_property_read_u32(dev->of_node, "reg", &io_base))
+		return -EINVAL;
 
 	irq = platform_get_irq(pdev, 0);
 	if (irq < 0)
 		return irq;
 
-	mcu_intc = devm_kzalloc(dev, sizeof(*mcu_intc), GFP_KERNEL);
-	if (!mcu_intc)
+	irqc = devm_kzalloc(dev, sizeof(*irqc), GFP_KERNEL);
+	if (!irqc)
 		return -ENOMEM;
 
-	mcu_intc->regmap = regmap;
-	mcu_intc->chip = ctr_mcu_irqchip;
-	platform_set_drvdata(pdev, mcu_intc);
+	irqc->name = dev_name(dev);
+
+	irqc->irqs = ctr_mcu_irqs;
+	irqc->num_irqs = ARRAY_SIZE(ctr_mcu_irqs);
+	irqc->num_regs = 4;
+
+	irqc->status_base = io_base + OFFSET_STAT;
+	irqc->mask_base = io_base + OFFSET_MASK;
+
+	irqc->init_ack_masked = true;
 
 	return devm_regmap_add_irq_chip_fwnode(dev, dev_fwnode(dev),
-		regmap, irq, 0, 0, &mcu_intc->chip, &mcu_intc->data);
+		map, irq, 0, 0, irqc, &data);
 }
 
 static const struct of_device_id ctr_mcu_intc_of_match[] = {

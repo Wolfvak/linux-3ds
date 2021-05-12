@@ -157,11 +157,16 @@
 			interrupts = <GIC_SPI 0x35 IRQ_TYPE_EDGE_RISING>;
 
 			mcu: mcu@25 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
 				compatible = "nintendo,3ds-mcu";
 				reg = <0x25>;
 
 				mcuintc: mcu-intc {
 					compatible = "nintendo,3dsmcu-intc";
+
+					reg = <0x10>;
 
 					interrupt-controller;
 					#address-cells = <1>;
@@ -170,50 +175,59 @@
 					interrupts-extended = <&gpio3 9 IRQ_TYPE_EDGE_FALLING>;
 				};
 
-				led: mcu-led {
+				mcu-led {
 					compatible = "nintendo,3dsmcu-led";
+					reg = <0x2D>;
 				};
 
-				rtc: mcu-rtc {
+				mcu-rtc {
 					compatible = "nintendo,3dsmcu-rtc";
+					reg = <0x30>;
 				};
 
-				powersupply: mcu-powersupply {
+				mcu-powersupply {
 					compatible = "nintendo,3dsmcu-powersupply";
 				};
 
-				accelerometer: mcu-accel {
+				mcu-accel {
 					compatible = "nintendo,3dsmcu-accel";
+					reg = <0x40>;
 				};
 
-				pwroff_reg: pwroff-regulator {
+				pwroff_reg: poweroff-regulator@20 {
 					compatible = "nintendo,3dsmcu-regulator";
-					off = <1>;
-					delay-us = <1000000>;
+					regulator-name = "Power off";
+
+					reg = <0x20>;
+					on = <0x00>;
+					off = <0x01>;
 				};
 
-				reboot_reg: reset-regulator {
+				reboot_reg: reset-regulator@20 {
 					compatible = "nintendo,3dsmcu-regulator";
-					off = <4>;
-					delay-us = <1000000>;
+					regulator-name = "Reboot";
+
+					reg = <0x20>;
+					on = <0x00>;
+					off = <0x04>;
 				};
 
-				panel_reg: panel-regulator {
+				panel_reg: panel-regulator@22 {
 					compatible = "nintendo,3dsmcu-regulator";
-					on = <17>;
-					off = <16>;
+					regulator-name = "Panel power";
+
+					reg = <0x22>;
+					on = <0x02>;
+					off = <0x01>;
 				};
 
-				bl_top_reg: backlight-top-regulator {
+				backlight_reg: backlight-regulator@22 {
 					compatible = "nintendo,3dsmcu-regulator";
-					on = <21>;
-					off = <20>;
-				};
+					regulator-name = "Backlight power";
 
-				bl_bot_reg: backlight-bottom-regulator {
-					compatible = "nintendo,3dsmcu-regulator";
-					on = <19>;
-					off = <18>;
+					reg = <0x22>;
+					on = <0x28>;
+					off = <0x14>;
 				};
 			};
 		};
