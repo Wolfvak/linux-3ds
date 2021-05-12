@@ -22,7 +22,7 @@ struct ctr_tsc {
 	int banksel; /* currently selected bank */
 };
 
-static inline int ctr_tsc_switch_bank(struct ctr_tsc *cdc, const u8 *bank)
+static int ctr_tsc_switch_bank(struct ctr_tsc *cdc, const u8 *bank)
 {
 	u8 banksel[2];
 	int err, bank_id;
@@ -40,9 +40,9 @@ static inline int ctr_tsc_switch_bank(struct ctr_tsc *cdc, const u8 *bank)
 	return err;
 }
 
-static inline int ctr_tsc_read(void *context,
-								const void *reg_buf, size_t reg_len,
-								void *val_buf, size_t val_len)
+static int ctr_tsc_read(void *context,
+			const void *reg_buf, size_t reg_len,
+			void *val_buf, size_t val_len)
 {
 	int err;
 	struct ctr_tsc *cdc = context;
@@ -57,7 +57,7 @@ static inline int ctr_tsc_read(void *context,
 	return spi_write_then_read(cdc->spi, reg_buf + 1, 1, val_buf, val_len);
 }
 
-static inline int ctr_tsc_write(void *context, const void *data, size_t len)
+static int ctr_tsc_write(void *context, const void *data, size_t len)
 {
 	int err;
 	struct ctr_tsc *cdc = context;
@@ -72,7 +72,7 @@ static inline int ctr_tsc_write(void *context, const void *data, size_t len)
 	return spi_write(cdc->spi, data + 1, len - 1);
 }
 
-static inline int ctr_tsc_gather_write(void *context,
+static int ctr_tsc_gather_write(void *context,
 										const void *reg, size_t reg_len,
 										const void *val, size_t val_len)
 {
