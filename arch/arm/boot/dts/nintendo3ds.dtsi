@@ -185,8 +185,9 @@
 					reg = <0x30>;
 				};
 
-				mcu-powersupply {
-					compatible = "nintendo,3dsmcu-powersupply";
+				mcu-charger {
+					compatible = "nintendo,3dsmcu-charger";
+					reg = <0xA>;
 				};
 
 				mcu-accel {

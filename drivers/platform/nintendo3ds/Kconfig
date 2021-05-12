@@ -100,7 +100,7 @@ config CTR_MCULED
 	  Nintendo 3DS notification LED driver.
 
 
-config CTR_MCUPSY
+config CTR_MCUCHARGER
 	tristate "Nintendo 3DS battery and AC driver"
 	depends on CTR_MCU
 	select POWER_SUPPLY

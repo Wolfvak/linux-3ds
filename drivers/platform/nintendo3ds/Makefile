@@ -17,4 +17,4 @@ obj-$(CONFIG_CTR_MCU)	+= mcu/regulator.o
 obj-$(CONFIG_CTR_MCUACCEL)	+= mcu/accel.o
 obj-$(CONFIG_CTR_MCULED)	+= mcu/led.o
 obj-$(CONFIG_CTR_MCURTC)	+= mcu/rtc.o
-obj-$(CONFIG_CTR_MCUPSY)	+= mcu/powersupply.o
+obj-$(CONFIG_CTR_MCUCHARGER)	+= mcu/charger.o
