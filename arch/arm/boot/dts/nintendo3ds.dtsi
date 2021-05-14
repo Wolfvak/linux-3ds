@@ -163,9 +163,8 @@
 				compatible = "nintendo,3ds-mcu";
 				reg = <0x25>;
 
-				mcuintc: mcu-intc {
+				mcuintc: interrupt-controller@10 {
 					compatible = "nintendo,3dsmcu-intc";
-
 					reg = <0x10>;
 
 					interrupt-controller;
@@ -175,22 +174,22 @@
 					interrupts-extended = <&gpio3 9 IRQ_TYPE_EDGE_FALLING>;
 				};
 
-				mcu-led {
+				mcu-charger@a {
+					compatible = "nintendo,3dsmcu-charger";
+					reg = <0x0A>;
+				};
+
+				mcu-led@2d {
 					compatible = "nintendo,3dsmcu-led";
 					reg = <0x2D>;
 				};
 
-				mcu-rtc {
+				mcu-rtc@30 {
 					compatible = "nintendo,3dsmcu-rtc";
 					reg = <0x30>;
 				};
 
-				mcu-charger {
-					compatible = "nintendo,3dsmcu-charger";
-					reg = <0xA>;
-				};
-
-				mcu-accel {
+				mcu-accel@40 {
 					compatible = "nintendo,3dsmcu-accel";
 					reg = <0x40>;
 				};

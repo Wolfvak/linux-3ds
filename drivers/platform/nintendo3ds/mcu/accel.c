@@ -32,6 +32,9 @@
 #define ACCELEROMETER_OFF	(0)
 #define ACCELEROMETER_ON	(BIT(0))
 
+#define ACCELEROMETER_UPDATE_PERIOD	(HZ / 50)
+/* update at most 50 times per second */
+
 #define REG_MODE	0x00
 #define REG_DATA	0x05
 
@@ -44,13 +47,13 @@ struct ctr_accel {
 	s16 data[3];
 	unsigned io_addr;
 
-	struct mutex lock;
+	unsigned long last_chk;
 };
 
 static int ctr_accel_set_power(struct ctr_accel *acc, int pwr)
 {
 	int err = regmap_write(acc->map, acc->io_addr + REG_MODE,
-		(pwr > 0) ? ACCELEROMETER_ON : ACCELEROMETER_OFF);
+		pwr > 0 ? ACCELEROMETER_ON : ACCELEROMETER_OFF);
 
 	if (!err) {
 		acc->pwr = pwr;
@@ -64,12 +67,18 @@ static void ctr_accel_update_data(struct ctr_accel *acc)
 {
 	int err;
 
-	if (acc->pwr) {
-		err = regmap_bulk_read(acc->map, acc->io_addr + REG_DATA,
-			acc->data, sizeof(acc->data));
-		if (err)
-			memset(acc->data, 0, sizeof(acc->data));
-	}
+	if (time_is_after_jiffies(acc->last_chk + ACCELEROMETER_UPDATE_PERIOD))
+		return;
+
+	if (!acc->pwr)
+		return;
+
+	err = regmap_bulk_read(acc->map, acc->io_addr + REG_DATA,
+		acc->data, sizeof(acc->data));
+	if (err)
+		memset(acc->data, 0, sizeof(acc->data));
+	else
+		acc->last_chk = jiffies;
 }
 
 static int ctr_accel_read_raw(struct iio_dev *indio_dev,
@@ -79,10 +88,8 @@ static int ctr_accel_read_raw(struct iio_dev *indio_dev,
 	int err;
 	struct ctr_accel *acc = iio_priv(indio_dev);
 
-	mutex_lock(&acc->lock);
 	switch(mask) {
 		case IIO_CHAN_INFO_RAW:
-			// TODO: only update this data if it's relatively old
 			ctr_accel_update_data(acc);
 			if (chan->address < 3) {
 				*val = sign_extend32(acc->data[chan->address], 15);
@@ -107,7 +114,6 @@ static int ctr_accel_read_raw(struct iio_dev *indio_dev,
 			err = -EINVAL;
 			break;
 	}
-	mutex_unlock(&acc->lock);
 
 	return err;
 }
@@ -119,7 +125,6 @@ static int ctr_accel_write_raw(struct iio_dev *indio_dev,
 	int err;
 	struct ctr_accel *acc = iio_priv(indio_dev);
 
-	mutex_lock(&acc->lock);
 	switch(mask) {
 		case IIO_CHAN_INFO_ENABLE:
 			err = ctr_accel_set_power(acc, val);
@@ -129,7 +134,6 @@ static int ctr_accel_write_raw(struct iio_dev *indio_dev,
 			err = -EINVAL;
 			break;
 	}
-	mutex_unlock(&acc->lock);
 
 	return err;
 }
@@ -190,7 +194,7 @@ static int ctr_accel_probe(struct platform_device *pdev)
 
 	acc->map = regmap;
 	acc->io_addr = io_addr;
-	mutex_init(&acc->lock);
+	acc->last_chk = jiffies;
 
 	err = ctr_accel_set_power(acc, 0);
 	if (err < 0)

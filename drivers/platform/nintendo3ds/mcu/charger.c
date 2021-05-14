@@ -103,7 +103,7 @@ static int ac_getprop(struct power_supply *psy,
 			break;
 
 		case POWER_SUPPLY_PROP_ONLINE:
-			val->intval = (data[REG_STATUS] & STATUS_AC_PLUGGED) ? 1 : 0;
+			val->intval = data[REG_STATUS] & STATUS_AC_PLUGGED ? 1 : 0;
 			break;
 
 		default:
