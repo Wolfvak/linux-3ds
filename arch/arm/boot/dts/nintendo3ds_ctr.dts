@@ -40,3 +40,11 @@
 		bootargs = "keep_bootcon fbcon=rotate:1 rdinit=/bin/sh";
 	};
 };
+
+&i2c3 {
+	itg3200: gyroscope@68 {
+		compatible = "invensense,itg3200";
+		reg = <0x68>;
+		interrupts-extended = <&gpio3 2 IRQ_TYPE_EDGE_FALLING>;
+	};
+};
