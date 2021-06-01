@@ -508,4 +508,14 @@
 			label = "Y";
 		};
 	};
+
+    top_backlight: top-backlight {
+		compatible = "nintendo,3ds-bl";
+		reg = <0x10202240 0x4>;
+	};
+
+    bottom_backlight: bottom-backlight {
+		compatible = "nintendo,3ds-bl";
+		reg = <0x10202a40 0x4>;
+	};
 };

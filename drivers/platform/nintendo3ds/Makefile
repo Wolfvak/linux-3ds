@@ -10,6 +10,8 @@ obj-$(CONFIG_CTR_TSC_TOUCH)	+= tsc/touch.o
 
 obj-$(CONFIG_CTR_I2C)	+= ctr_i2c.o
 
+obj-$(CONFIG_CTR_BL)	+= ctr_bl.o
+
 # interrupt controller and regulator are
 # always enabled if the MCU is enabled
 obj-$(CONFIG_CTR_MCU)	+= mcu/intc.o
