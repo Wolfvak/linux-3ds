@@ -5,8 +5,8 @@
  * Copyright (C) 2021 Santiago Herrera
  */
 
-#define DRIVER_NAME	"3dsmcu-regulator"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define DRIVER_NAME "3dsmcu-regulator"
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/of.h>
 #include <linux/kernel.h>
@@ -83,7 +83,7 @@ static int ctr_regulator_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id ctr_regulator_of_match[] = {
-	{ .compatible = "nintendo," DRIVER_NAME, },
+	{ .compatible = "nintendo," DRIVER_NAME },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ctr_regulator_of_match);

@@ -5,8 +5,8 @@
  *  Copyright (C) 2021 Santiago Herrera
  */
 
-#define DRIVER_NAME	"3dsmcu-intc"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define DRIVER_NAME "3dsmcu-intc"
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/of.h>
 #include <linux/kernel.h>
@@ -96,8 +96,8 @@ static int ctr_mcu_intc_probe(struct platform_device *pdev)
 
 	irqc->init_ack_masked = true;
 
-	return devm_regmap_add_irq_chip_fwnode(dev, dev_fwnode(dev),
-		map, irq, 0, 0, irqc, &data);
+	return devm_regmap_add_irq_chip_fwnode(dev, dev_fwnode(dev), map, irq,
+					       0, 0, irqc, &data);
 }
 
 static const struct of_device_id ctr_mcu_intc_of_match[] = {

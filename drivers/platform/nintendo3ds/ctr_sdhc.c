@@ -8,7 +8,7 @@
  */
 
 #define DRIVER_NAME "3ds-sdhc"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/io.h>
 #include <linux/of.h>
@@ -27,17 +27,15 @@
 
 #include "ctr_sdhc.h"
 
-#define SDHC_ERR_MASK	( \
-	SDHC_ERR_BAD_CMD | SDHC_ERR_CRC_FAIL | \
-	SDHC_ERR_STOP_BIT | SDHC_ERR_DATATIMEOUT | \
-	SDHC_ERR_TX_OVERFLOW | SDHC_ERR_RX_UNDERRUN | \
-	SDHC_ERR_CMD_TIMEOUT | SDHC_ERR_ILLEGAL_ACC)
+#define SDHC_ERR_MASK                                                          \
+	(SDHC_ERR_BAD_CMD | SDHC_ERR_CRC_FAIL | SDHC_ERR_STOP_BIT |            \
+	 SDHC_ERR_DATATIMEOUT | SDHC_ERR_TX_OVERFLOW | SDHC_ERR_RX_UNDERRUN |  \
+	 SDHC_ERR_CMD_TIMEOUT | SDHC_ERR_ILLEGAL_ACC)
 
-#define SDHC_DEFAULT_IRQMASK	( \
-	SDHC_STAT_CMDRESPEND | SDHC_STAT_DATA_END | \
-	SDHC_STAT_RX_READY | SDHC_STAT_TX_REQUEST | \
-	SDHC_STAT_CARDREMOVE | SDHC_STAT_CARDINSERT | \
-	SDHC_ERR_MASK)
+#define SDHC_DEFAULT_IRQMASK                                                   \
+	(SDHC_STAT_CMDRESPEND | SDHC_STAT_DATA_END | SDHC_STAT_RX_READY |      \
+	 SDHC_STAT_TX_REQUEST | SDHC_STAT_CARDREMOVE | SDHC_STAT_CARDINSERT |  \
+	 SDHC_ERR_MASK)
 
 static void ctr_sdhc_reset(struct ctr_sdhc *host)
 {
@@ -66,7 +64,7 @@ static void ctr_sdhc_reset(struct ctr_sdhc *host)
 	iowrite32(0, host->regs + SDHC_IRQ_STAT);
 
 	iowrite16(SDHC_CARD_OPTION_1BIT | SDHC_CARD_OPTION_NOC2,
-		host->regs + SDHC_CARD_OPTION);
+		  host->regs + SDHC_CARD_OPTION);
 }
 
 static void __ctr_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
@@ -90,7 +88,7 @@ static void __ctr_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		int clk_div = -1;
 		unsigned clk_fit = clk_get_rate(host->sdclk) / 2;
 
-		while((ios->clock < clk_fit) && (clk_div < 7)) {
+		while ((ios->clock < clk_fit) && (clk_div < 7)) {
 			clk_div++;
 			clk_fit >>= 1;
 		}
@@ -109,18 +107,16 @@ static void __ctr_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		break;
 
 	case MMC_BUS_WIDTH_1:
-		iowrite16(SDHC_CARD_OPTION_RETRIES(14)
-				| SDHC_CARD_OPTION_TIMEOUT(14)
-				| SDHC_CARD_OPTION_NOC2
-				| SDHC_CARD_OPTION_1BIT,
-				host->regs + SDHC_CARD_OPTION);
+		iowrite16(SDHC_CARD_OPTION_RETRIES(14) |
+				  SDHC_CARD_OPTION_TIMEOUT(14) |
+				  SDHC_CARD_OPTION_NOC2 | SDHC_CARD_OPTION_1BIT,
+			  host->regs + SDHC_CARD_OPTION);
 		break;
 	case MMC_BUS_WIDTH_4:
-		iowrite16(SDHC_CARD_OPTION_RETRIES(14)
-				| SDHC_CARD_OPTION_TIMEOUT(14)
-				| SDHC_CARD_OPTION_NOC2
-				| SDHC_CARD_OPTION_4BIT,
-				host->regs + SDHC_CARD_OPTION);
+		iowrite16(SDHC_CARD_OPTION_RETRIES(14) |
+				  SDHC_CARD_OPTION_TIMEOUT(14) |
+				  SDHC_CARD_OPTION_NOC2 | SDHC_CARD_OPTION_4BIT,
+			  host->regs + SDHC_CARD_OPTION);
 		break;
 	}
 }
@@ -186,15 +182,14 @@ static irqreturn_t ctr_sdhc_thread_irq(int irq, void *dev_id)
 	if (count > data->blksz)
 		count = data->blksz;
 
-	dev_dbg(host->dev, "count: %08x, flags %08x\n", count,
-		data->flags);
+	dev_dbg(host->dev, "count: %08x, flags %08x\n", count, data->flags);
 
 	if (data->flags & MMC_DATA_READ) {
-		ioread16_rep(host->regs + SDHC_DATA16_FIFO_PORT,
-			buf, count >> 1);
+		ioread16_rep(host->regs + SDHC_DATA16_FIFO_PORT, buf,
+			     count >> 1);
 	} else {
-		iowrite16_rep(host->regs + SDHC_DATA16_FIFO_PORT,
-			buf, count >> 1);
+		iowrite16_rep(host->regs + SDHC_DATA16_FIFO_PORT, buf,
+			      count >> 1);
 	}
 
 	sg_miter->consumed = count;
@@ -215,7 +210,7 @@ static void ctr_sdhc_respend_irq(struct ctr_sdhc *host)
 		return;
 	}
 
-	respbuf = (u32*)cmd->resp;
+	respbuf = (u32 *)cmd->resp;
 	host->cmd = NULL;
 
 	for (i = 0, reg = SDHC_CMD_RESPONSE; i < 4; i++, reg += 4)
@@ -230,8 +225,8 @@ static void ctr_sdhc_respend_irq(struct ctr_sdhc *host)
 		respbuf[0] = response[0];
 	}
 
-	dev_dbg(host->dev, "Command IRQ complete %d %d %x\n",
-		cmd->opcode, cmd->error, cmd->flags);
+	dev_dbg(host->dev, "Command IRQ complete %d %d %x\n", cmd->opcode,
+		cmd->error, cmd->flags);
 
 	/* If there is data to handle we will
 	 * finish the request in the data end irq handler.*/
@@ -260,7 +255,7 @@ static irqreturn_t ctr_sdhc_irq(int irq, void *dev_id)
 	}
 
 	iowrite32(~(int_reg & SDHC_DEFAULT_IRQMASK),
-		host->regs + SDHC_IRQ_STAT);
+		  host->regs + SDHC_IRQ_STAT);
 
 	if (int_reg & (SDHC_STAT_CARDREMOVE | SDHC_STAT_CARDINSERT)) {
 		if (int_reg & SDHC_STAT_CARDPRESENT)
@@ -291,7 +286,7 @@ static irqreturn_t ctr_sdhc_irq(int irq, void *dev_id)
 		}
 	}
 
-	if (int_reg & (SDHC_STAT_RX_READY | SDHC_STAT_TX_REQUEST)) {		
+	if (int_reg & (SDHC_STAT_RX_READY | SDHC_STAT_TX_REQUEST)) {
 		ret = IRQ_WAKE_THREAD;
 		goto irq_end;
 	}
@@ -462,8 +457,7 @@ static int ctr_sdhc_get_ro(struct mmc_host *mmc)
 static int ctr_sdhc_get_cd(struct mmc_host *mmc)
 {
 	struct ctr_sdhc *host = mmc_priv(mmc);
-	return !!(ioread16(host->regs + SDHC_IRQ_STAT) &
-		SDHC_STAT_CARDPRESENT);
+	return !!(ioread16(host->regs + SDHC_IRQ_STAT) & SDHC_STAT_CARDPRESENT);
 }
 
 static void ctr_sdhc_enable_sdio_irq(struct mmc_host *mmc, int enable)
@@ -561,7 +555,7 @@ static int ctr_sdhc_probe(struct platform_device *pdev)
 		goto free_mmc;
 
 	ret = devm_request_irq(dev, platform_get_irq(pdev, 1),
-				ctr_sdhc_sdio_irq, 0, DRIVER_NAME, host);
+			       ctr_sdhc_sdio_irq, 0, DRIVER_NAME, host);
 	if (ret)
 		goto free_mmc;
 
@@ -574,25 +568,22 @@ free_mmc:
 	return ret;
 }
 
-static const struct dev_pm_ops ctr_sdhc_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(ctr_sdhc_pm_suspend, ctr_sdhc_pm_resume)
-};
+static const struct dev_pm_ops ctr_sdhc_pm_ops = { SET_SYSTEM_SLEEP_PM_OPS(
+	ctr_sdhc_pm_suspend, ctr_sdhc_pm_resume) };
 
 static const struct of_device_id ctr_sdhc_of_match[] = {
 	{ .compatible = "nintendo," DRIVER_NAME },
-	{ },
+	{},
 };
 MODULE_DEVICE_TABLE(of, ctr_sdhc_of_match);
 
 static struct platform_driver ctr_sdhc_driver = {
-	.probe		= ctr_sdhc_probe,
+	.probe = ctr_sdhc_probe,
 
-	.driver		= {
-		.name	= DRIVER_NAME,
-		.owner	= THIS_MODULE,
-		.of_match_table = of_match_ptr(ctr_sdhc_of_match),
-		.pm	= &ctr_sdhc_pm_ops
-	},
+	.driver = { .name = DRIVER_NAME,
+		    .owner = THIS_MODULE,
+		    .of_match_table = of_match_ptr(ctr_sdhc_of_match),
+		    .pm = &ctr_sdhc_pm_ops },
 };
 
 module_platform_driver(ctr_sdhc_driver);

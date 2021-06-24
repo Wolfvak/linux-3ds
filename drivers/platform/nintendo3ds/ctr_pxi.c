@@ -8,7 +8,7 @@
  */
 
 #define DRIVER_NAME "3ds-pxi"
-#define pr_fmt(str)	DRIVER_NAME ": " str
+#define pr_fmt(str) DRIVER_NAME ": " str
 
 #include <linux/io.h>
 #include <linux/of.h>
@@ -54,35 +54,37 @@
 /**
  * PXI hardware interfacing routines
  */
-static int pxi_tx_full(struct pxi_host *pxi) {
+static int pxi_tx_full(struct pxi_host *pxi)
+{
 	return ioread16(pxi->regs + REG_PXI_CNT) & PXI_CNT_TX_FULL;
 }
 
-static int pxi_rx_empty(struct pxi_host *pxi) {
+static int pxi_rx_empty(struct pxi_host *pxi)
+{
 	return ioread16(pxi->regs + REG_PXI_CNT) & PXI_CNT_RX_EMPTY;
 }
 
-static int pxi_check_err(struct pxi_host *pxi) {
+static int pxi_check_err(struct pxi_host *pxi)
+{
 	if (unlikely(ioread32(pxi->regs + REG_PXI_CNT) & PXI_CNT_ERRACK)) {
 		iowrite32(PXI_CNT_FIFO_FLUSH | PXI_CNT_ERRACK | PXI_CNT_ENABLE,
-			pxi->regs + REG_PXI_CNT);
+			  pxi->regs + REG_PXI_CNT);
 		return -EIO;
 	}
 	return 0;
 }
 
-static int pxi_txrx(struct pxi_host *pxi, const u32 *ww,
-			int nw, u32 *wr, int nr)
+static int pxi_txrx(struct pxi_host *pxi, const u32 *ww, int nw, u32 *wr,
+		    int nr)
 {
 	long err;
 
 	might_sleep();
 	mutex_lock(&pxi->fifo_lock);
 
-	while(nw > 0) { // send
-		err = wait_event_interruptible_timeout(pxi->fifo_wq,
-			!(pxi_tx_full(pxi)), PXI_FIFO_TIMEOUT
-		);
+	while (nw > 0) { // send
+		err = wait_event_interruptible_timeout(
+			pxi->fifo_wq, !(pxi_tx_full(pxi)), PXI_FIFO_TIMEOUT);
 		if (unlikely(err <= 0)) {
 			err = -ETIMEDOUT;
 			goto fifo_err;
@@ -91,14 +93,14 @@ static int pxi_txrx(struct pxi_host *pxi, const u32 *ww,
 		iowrite32(*(ww++), pxi->regs + REG_PXI_TX);
 
 		err = pxi_check_err(pxi);
-		if (err) goto fifo_err;
+		if (err)
+			goto fifo_err;
 		nw--;
 	}
 
-	while(nr > 0) { // recv
-		err = wait_event_interruptible_timeout(pxi->fifo_wq,
-			!(pxi_rx_empty(pxi)), PXI_FIFO_TIMEOUT
-		);
+	while (nr > 0) { // recv
+		err = wait_event_interruptible_timeout(
+			pxi->fifo_wq, !(pxi_rx_empty(pxi)), PXI_FIFO_TIMEOUT);
 		if (unlikely(err <= 0)) {
 			err = -ETIMEDOUT;
 			goto fifo_err;
@@ -107,7 +109,8 @@ static int pxi_txrx(struct pxi_host *pxi, const u32 *ww,
 		*(wr++) = ioread32(pxi->regs + REG_PXI_RX);
 
 		err = pxi_check_err(pxi);
-		if (err) goto fifo_err;
+		if (err)
+			goto fifo_err;
 		nr--;
 	}
 
@@ -123,7 +126,7 @@ static void pxi_initialize_host(struct pxi_host *pxi)
 	iowrite8(0, pxi->regs + REG_PXI_SYNCTX);
 	iowrite8(0, pxi->regs + REG_PXI_SYNCIRQ);
 	iowrite16(PXI_CNT_FIFO_FLUSH | PXI_CNT_ERRACK | PXI_CNT_ENABLE,
-		pxi->regs + REG_PXI_CNT);
+		  pxi->regs + REG_PXI_CNT);
 
 	for (i = 0; i < PXI_FIFO_DEPTH; i++)
 		ioread32(pxi->regs + REG_PXI_RX);
@@ -132,7 +135,8 @@ static void pxi_initialize_host(struct pxi_host *pxi)
 
 	iowrite8(PXI_SYNCIRQ_ENABLE, pxi->regs + REG_PXI_SYNCIRQ);
 	iowrite16(PXI_CNT_RX_IRQ | PXI_CNT_TX_IRQ | PXI_CNT_ERRACK |
-		PXI_CNT_FIFO_FLUSH | PXI_CNT_ENABLE, pxi->regs + REG_PXI_CNT);
+			  PXI_CNT_FIFO_FLUSH | PXI_CNT_ENABLE,
+		  pxi->regs + REG_PXI_CNT);
 
 	mutex_init(&pxi->fifo_lock);
 }
@@ -140,8 +144,8 @@ static void pxi_initialize_host(struct pxi_host *pxi)
 /**
  * Protocol interface helpers
  */
-static inline int vpxi_multiread_reg(struct pxi_host *pxi, int nr,
-					u32 dev, u32 *regs, u32 *data)
+static inline int vpxi_multiread_reg(struct pxi_host *pxi, int nr, u32 dev,
+				     u32 *regs, u32 *data)
 {
 	int i;
 	for (i = 0; i < nr; i++)
@@ -149,28 +153,25 @@ static inline int vpxi_multiread_reg(struct pxi_host *pxi, int nr,
 	return pxi_txrx(pxi, regs, nr, data, nr);
 }
 
-static inline int vpxi_multiwrite_reg(struct pxi_host *pxi, int nw,
-					u32 dev, u32 *regdata)
+static inline int vpxi_multiwrite_reg(struct pxi_host *pxi, int nw, u32 dev,
+				      u32 *regdata)
 {
 	int i;
 	for (i = 0; i < nw; i++)
-		regdata[i*2] = VPXI_CMD_WRITE(dev, regdata[i*2]);
-	return pxi_txrx(pxi, regdata, nw*2, NULL, 0);
+		regdata[i * 2] = VPXI_CMD_WRITE(dev, regdata[i * 2]);
+	return pxi_txrx(pxi, regdata, nw * 2, NULL, 0);
 }
 
-static int vpxi_read_reg(struct pxi_host *pxi,
-			u32 dev, u32 reg, u32 *val)
+static int vpxi_read_reg(struct pxi_host *pxi, u32 dev, u32 reg, u32 *val)
 {
 	return vpxi_multiread_reg(pxi, 1, dev, &reg, val);
 }
 
-static int vpxi_write_reg(struct pxi_host *pxi,
-			u32 dev, u32 reg, u32 val)
+static int vpxi_write_reg(struct pxi_host *pxi, u32 dev, u32 reg, u32 val)
 {
-	u32 cmd[2] = {reg, val};
+	u32 cmd[2] = { reg, val };
 	return vpxi_multiwrite_reg(pxi, 1, dev, cmd);
 }
-
 
 /*
  * VirtIO over PXI operation implementations
@@ -184,8 +185,8 @@ static u32 vpxi_generation(struct virtio_device *vdev)
 }
 
 /* TODO: add optimized versions that read on 1, 2 and 4 byte chunks */
-static void vpxi_get_config(struct virtio_device *vdev,
-			unsigned offset, void *buf, unsigned len)
+static void vpxi_get_config(struct virtio_device *vdev, unsigned offset,
+			    void *buf, unsigned len)
 {
 	int i;
 	u8 *bytes;
@@ -209,8 +210,8 @@ static void vpxi_get_config(struct virtio_device *vdev,
 	}
 }
 
-static void vpxi_set_config(struct virtio_device *vdev,
-			unsigned offset, const void *buf, unsigned len)
+static void vpxi_set_config(struct virtio_device *vdev, unsigned offset,
+			    const void *buf, unsigned len)
 {
 	int i, err;
 	u32 cmd[16];
@@ -219,9 +220,9 @@ static void vpxi_set_config(struct virtio_device *vdev,
 
 	BUG_ON(len > 8);
 
-	for (i = 0; i < (len*2); i += 2) {
-		cmd[i+0] = VPXI_REG_CFG(offset + i);
-		cmd[i+1] = *(u8*)(buf + i);
+	for (i = 0; i < (len * 2); i += 2) {
+		cmd[i + 0] = VPXI_REG_CFG(offset + i);
+		cmd[i + 1] = *(u8 *)(buf + i);
 	}
 
 	err = vpxi_multiwrite_reg(pxi, len, vpd->id, cmd);
@@ -234,7 +235,8 @@ static u8 vpxi_get_status(struct virtio_device *vdev)
 	struct virtio_pxi_dev *vpd = to_vpxi_dev(vdev);
 	struct pxi_host *pxi = to_pxi_host(vpd);
 	err = vpxi_read_reg(pxi, vpd->id, VPXI_REG_DEV_STATUS, &status);
-	if (err) return ~0;
+	if (err)
+		return ~0;
 	return status & 0xFF;
 }
 
@@ -258,8 +260,7 @@ static bool vpxi_notify(struct virtqueue *vq)
 {
 	struct virtio_pxi_dev *vpd = to_vpxi_dev(vq->vdev);
 	struct pxi_host *pxi = to_pxi_host(vpd);
-	vpxi_write_reg(pxi, vpd->id,
-		VPXI_REG_QUEUE_NOTIFY(vq->index), 1);
+	vpxi_write_reg(pxi, vpd->id, VPXI_REG_QUEUE_NOTIFY(vq->index), 1);
 	return true;
 }
 
@@ -283,13 +284,14 @@ static void vpxi_del_vq(struct virtqueue *vq)
 static void vpxi_del_vqs(struct virtio_device *vdev)
 {
 	struct virtqueue *vq, *n;
-	list_for_each_entry_safe(vq, n, &vdev->vqs, list)
+	list_for_each_entry_safe (vq, n, &vdev->vqs, list)
 		vpxi_del_vq(vq);
 }
 
 static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
-			unsigned index, void (*callback)(struct virtqueue *vq),
-			const char *name, bool ctx)
+				       unsigned index,
+				       void (*callback)(struct virtqueue *vq),
+				       const char *name, bool ctx)
 {
 	int err;
 	u32 vregs[10];
@@ -309,14 +311,13 @@ static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
 		return ERR_PTR(err);
 
 	if (vregs[0] != 0) {
-		pr_err("queue %d is already enabled on device %d",
-			index, vpd->id);
+		pr_err("queue %d is already enabled on device %d", index,
+		       vpd->id);
 		return ERR_PTR(-ENOENT);
 	}
 
 	if (vregs[1] == 0) {
-		pr_err("queue %d is zero on dev %d",
-			index, vpd->id);
+		pr_err("queue %d is zero on dev %d", index, vpd->id);
 		return ERR_PTR(-ENOENT);
 	}
 
@@ -325,7 +326,8 @@ static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
 		return ERR_PTR(-ENOMEM);
 
 	vq = vring_create_virtqueue(index, vregs[1], VPXI_VRING_ALIGN, vdev,
-				false, true, ctx, vpxi_notify, callback, name);
+				    false, true, ctx, vpxi_notify, callback,
+				    name);
 	if (!vq) {
 		devm_kfree(pxi->dev, info);
 		return ERR_PTR(-ENOMEM);
@@ -363,11 +365,9 @@ static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
 }
 
 static int vpxi_find_vqs(struct virtio_device *vdev, unsigned nvqs,
-			struct virtqueue *vqs[],
-			vq_callback_t *callbacks[],
-			const char * const names[],
-			const bool *ctx,
-			struct irq_affinity *desc)
+			 struct virtqueue *vqs[], vq_callback_t *callbacks[],
+			 const char *const names[], const bool *ctx,
+			 struct irq_affinity *desc)
 {
 	int i, queue_idx = 0;
 
@@ -378,7 +378,7 @@ static int vpxi_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 		}
 
 		vqs[i] = vpxi_setup_vq(vdev, queue_idx++, callbacks[i],
-					names[i], ctx ? ctx[i] : false);
+				       names[i], ctx ? ctx[i] : false);
 		if (IS_ERR(vqs[i])) {
 			vpxi_del_vqs(vdev);
 			return PTR_ERR(vqs[i]);
@@ -427,16 +427,16 @@ static const char *vpxi_bus_name(struct virtio_device *vdev)
 }
 
 static const struct virtio_config_ops vpxi_config_ops = {
-	.get		= vpxi_get_config,
-	.set		= vpxi_set_config,
+	.reset	= vpxi_reset,
+	.get	= vpxi_get_config,
+	.set	= vpxi_set_config,
 	.generation	= vpxi_generation,
 	.get_status	= vpxi_get_status,
 	.set_status	= vpxi_set_status,
-	.reset		= vpxi_reset,
 	.find_vqs	= vpxi_find_vqs,
 	.del_vqs	= vpxi_del_vqs,
 	.get_features	= vpxi_get_features,
-	.finalize_features = vpxi_finalize_features,
+	.finalize_features	= vpxi_finalize_features,
 	.bus_name	= vpxi_bus_name,
 };
 
@@ -480,7 +480,7 @@ static void vpxi_irq_worker(struct work_struct *work)
 		if (pending_mask & BIT(qirq)) {
 			unsigned long flags;
 			spin_lock_irqsave(&vpd->lock, flags);
-			list_for_each_entry(info, &vpd->vqs, node)
+			list_for_each_entry (info, &vpd->vqs, node)
 				vring_interrupt(0, info->vq);
 			spin_unlock_irqrestore(&vpd->lock, flags);
 		}
@@ -508,7 +508,9 @@ static irqreturn_t pxi_txrx_fifo_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static void vpxi_release_dev(struct device *dev) {}
+static void vpxi_release_dev(struct device *dev)
+{
+}
 
 /* driver initialization / initial probing */
 static int pxi_init_virtio(struct pxi_host *pxi)
@@ -535,7 +537,7 @@ static int pxi_init_virtio(struct pxi_host *pxi)
 		return -EINVAL;
 
 	pxi->vpdevs = devm_kcalloc(pxi->dev, pxi->vpd_count,
-				sizeof(struct virtio_pxi_dev), GFP_KERNEL);
+				   sizeof(struct virtio_pxi_dev), GFP_KERNEL);
 	if (!pxi->vpdevs)
 		return -ENOMEM;
 
@@ -615,18 +617,18 @@ static int ctr_pxi_probe(struct platform_device *pdev)
 	pxi_initialize_host(pxi);
 	platform_set_drvdata(pdev, pxi);
 
-	err = devm_request_irq(&pdev->dev, sync_irq,
-		vpxi_irq, 0, "pxi_sync", pxi);
+	err = devm_request_irq(&pdev->dev, sync_irq, vpxi_irq, 0, "pxi_sync",
+			       pxi);
 	if (err)
 		return err;
 
-	err = devm_request_irq(&pdev->dev, tx_irq,
-		pxi_txrx_fifo_irq, 0, "pxi_tx", pxi);
+	err = devm_request_irq(&pdev->dev, tx_irq, pxi_txrx_fifo_irq, 0,
+			       "pxi_tx", pxi);
 	if (err)
 		return err;
 
-	err = devm_request_irq(&pdev->dev, rx_irq,
-		pxi_txrx_fifo_irq, 0, "pxi_rx", pxi);
+	err = devm_request_irq(&pdev->dev, rx_irq, pxi_txrx_fifo_irq, 0,
+			       "pxi_rx", pxi);
 	if (err)
 		return err;
 
@@ -646,8 +648,8 @@ static int ctr_pxi_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id ctr_pxi_of_match[] = {
-		{ .compatible = "nintendo," DRIVER_NAME, },
-		{},
+	{ .compatible = "nintendo," DRIVER_NAME },
+	{},
 };
 MODULE_DEVICE_TABLE(of, ctr_pxi_of_match);
 

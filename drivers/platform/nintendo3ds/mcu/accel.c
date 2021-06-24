@@ -5,8 +5,8 @@
  * Copyright (C) 2021 Santiago Herrera
  */
 
-#define DRIVER_NAME	"3dsmcu-accel"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define DRIVER_NAME "3dsmcu-accel"
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 /*
  * the hardware device is actually an ST LIS331DLH which is
@@ -53,7 +53,7 @@ struct ctr_accel {
 static int ctr_accel_set_power(struct ctr_accel *acc, int pwr)
 {
 	int err = regmap_write(acc->map, acc->io_addr + REG_MODE,
-		pwr > 0 ? ACCELEROMETER_ON : ACCELEROMETER_OFF);
+			       pwr > 0 ? ACCELEROMETER_ON : ACCELEROMETER_OFF);
 
 	if (!err) {
 		acc->pwr = pwr;
@@ -73,8 +73,8 @@ static void ctr_accel_update_data(struct ctr_accel *acc)
 	if (!acc->pwr)
 		return;
 
-	err = regmap_bulk_read(acc->map, acc->io_addr + REG_DATA,
-		acc->data, sizeof(acc->data));
+	err = regmap_bulk_read(acc->map, acc->io_addr + REG_DATA, acc->data,
+			       sizeof(acc->data));
 	if (err)
 		memset(acc->data, 0, sizeof(acc->data));
 	else
@@ -82,57 +82,57 @@ static void ctr_accel_update_data(struct ctr_accel *acc)
 }
 
 static int ctr_accel_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+			      struct iio_chan_spec const *chan, int *val,
+			      int *val2, long mask)
 {
 	int err;
 	struct ctr_accel *acc = iio_priv(indio_dev);
 
-	switch(mask) {
-		case IIO_CHAN_INFO_RAW:
-			ctr_accel_update_data(acc);
-			if (chan->address < 3) {
-				*val = sign_extend32(acc->data[chan->address], 15);
-				err = IIO_VAL_INT;
-			} else {
-				err = -EINVAL;
-			}
-			break;
-
-		case IIO_CHAN_INFO_ENABLE:
-			*val = acc->pwr;
+	switch (mask) {
+	case IIO_CHAN_INFO_RAW:
+		ctr_accel_update_data(acc);
+		if (chan->address < 3) {
+			*val = sign_extend32(acc->data[chan->address], 15);
 			err = IIO_VAL_INT;
-			break;
-
-		case IIO_CHAN_INFO_SCALE:
-			*val = 0;
-			*val2 = CTR_ACCEL_NSCALE;
-			err = IIO_VAL_INT_PLUS_NANO;
-			break;
-
-		default:
+		} else {
 			err = -EINVAL;
-			break;
+		}
+		break;
+
+	case IIO_CHAN_INFO_ENABLE:
+		*val = acc->pwr;
+		err = IIO_VAL_INT;
+		break;
+
+	case IIO_CHAN_INFO_SCALE:
+		*val = 0;
+		*val2 = CTR_ACCEL_NSCALE;
+		err = IIO_VAL_INT_PLUS_NANO;
+		break;
+
+	default:
+		err = -EINVAL;
+		break;
 	}
 
 	return err;
 }
 
 static int ctr_accel_write_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int val, int val2, long mask)
+			       struct iio_chan_spec const *chan, int val,
+			       int val2, long mask)
 {
 	int err;
 	struct ctr_accel *acc = iio_priv(indio_dev);
 
-	switch(mask) {
-		case IIO_CHAN_INFO_ENABLE:
-			err = ctr_accel_set_power(acc, val);
-			break;
+	switch (mask) {
+	case IIO_CHAN_INFO_ENABLE:
+		err = ctr_accel_set_power(acc, val);
+		break;
 
-		default:
-			err = -EINVAL;
-			break;
+	default:
+		err = -EINVAL;
+		break;
 	}
 
 	return err;
@@ -143,8 +143,8 @@ static const struct iio_info ctr_accel_ops = {
 	.write_raw = ctr_accel_write_raw,
 };
 
-#define CTR_ACCEL_CHANNEL(addr, subchan) \
-	{ \
+#define CTR_ACCEL_CHANNEL(addr, subchan)                                       \
+	{                                                                      \
 		.type = IIO_ACCEL, \
 		.address = (addr), \
 		.channel2 = (subchan), \
@@ -157,7 +157,7 @@ static const struct iio_info ctr_accel_ops = {
 		}, \
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
 		.info_mask_shared_by_type = \
-			BIT(IIO_CHAN_INFO_SCALE) | BIT(IIO_CHAN_INFO_ENABLE), \
+			BIT(IIO_CHAN_INFO_SCALE) | BIT(IIO_CHAN_INFO_ENABLE),                                           \
 	}
 
 static const struct iio_chan_spec ctr_accel_channels[] = {
@@ -240,7 +240,7 @@ static int ctr_accel_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(ctr_accel_pm_ops, ctr_accel_suspend, ctr_accel_resume);
 
 static const struct of_device_id ctr_accel_of_match[] = {
-	{ .compatible = "nintendo," DRIVER_NAME, },
+	{ .compatible = "nintendo," DRIVER_NAME },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ctr_accel_of_match);

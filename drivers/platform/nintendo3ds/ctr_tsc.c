@@ -6,8 +6,8 @@
  * chip used in the Nintendo (3)DS consoles
  */
 
-#define DRIVER_NAME	"3ds-tsc"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define DRIVER_NAME "3ds-tsc"
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/delay.h>
 #include <linux/kernel.h>
@@ -40,8 +40,7 @@ static int ctr_tsc_switch_bank(struct ctr_tsc *cdc, const u8 *bank)
 	return err;
 }
 
-static int ctr_tsc_read(void *context,
-			const void *reg_buf, size_t reg_len,
+static int ctr_tsc_read(void *context, const void *reg_buf, size_t reg_len,
 			void *val_buf, size_t val_len)
 {
 	int err;
@@ -72,8 +71,7 @@ static int ctr_tsc_write(void *context, const void *data, size_t len)
 	return spi_write(cdc->spi, data + 1, len - 1);
 }
 
-static int ctr_tsc_gather_write(void *context,
-				const void *reg, size_t reg_len,
+static int ctr_tsc_gather_write(void *context, const void *reg, size_t reg_len,
 				const void *val, size_t val_len)
 {
 	int err;
@@ -123,7 +121,7 @@ static const struct regmap_config ctr_tsc_map_cfg = {
 static int ctr_tsc_sw_reset(struct ctr_tsc *cdc)
 {
 	/* bank 0, register 1, write 1 */
-	static const u8 cdc_init_data[] = {0x00, (1 << 1) | 1, 0x01};
+	static const u8 cdc_init_data[] = { 0x00, (1 << 1) | 1, 0x01 };
 	return ctr_tsc_write(cdc, cdc_init_data, 3);
 }
 

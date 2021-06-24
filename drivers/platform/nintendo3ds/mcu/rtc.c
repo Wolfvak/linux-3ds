@@ -5,8 +5,8 @@
  * Copyright (C) 2020-2021 Santiago Herrera
  */
 
-#define DRIVER_NAME	"3dsmcu-rtc"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define DRIVER_NAME "3dsmcu-rtc"
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/of.h>
 #include <linux/bcd.h>
@@ -32,12 +32,12 @@ static int ctr_rtc_get_time(struct device *dev, struct rtc_time *tm)
 	if (err)
 		return err;
 
-	tm->tm_sec	= bcd2bin(buf[0]) % 60;
-	tm->tm_min	= bcd2bin(buf[1]) % 60;
-	tm->tm_hour	= bcd2bin(buf[2]) % 24;
-	tm->tm_mday	= bcd2bin(buf[4]) % 32;
-	tm->tm_mon	= (bcd2bin(buf[5]) - 1) % 12;
-	tm->tm_year	= bcd2bin(buf[6]) + 100;
+	tm->tm_sec = bcd2bin(buf[0]) % 60;
+	tm->tm_min = bcd2bin(buf[1]) % 60;
+	tm->tm_hour = bcd2bin(buf[2]) % 24;
+	tm->tm_mday = bcd2bin(buf[4]) % 32;
+	tm->tm_mon = (bcd2bin(buf[5]) - 1) % 12;
+	tm->tm_year = bcd2bin(buf[6]) + 100;
 	return 0;
 }
 
@@ -57,8 +57,8 @@ static int ctr_rtc_set_time(struct device *dev, struct rtc_time *tm)
 }
 
 static const struct rtc_class_ops ctr_rtc_ops = {
-	.read_time	= ctr_rtc_get_time,
-	.set_time	= ctr_rtc_set_time,
+	.read_time = ctr_rtc_get_time,
+	.set_time = ctr_rtc_set_time,
 };
 
 static int ctr_rtc_probe(struct platform_device *pdev)
@@ -97,7 +97,7 @@ static int ctr_rtc_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id ctr_rtc_of_match[] = {
-	{ .compatible = "nintendo," DRIVER_NAME, },
+	{ .compatible = "nintendo," DRIVER_NAME },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ctr_rtc_of_match);

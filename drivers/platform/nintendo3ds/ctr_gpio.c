@@ -6,7 +6,7 @@
  */
 
 #define DRIVER_NAME "3ds-gpio"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/io.h>
 #include <linux/irq.h>
@@ -54,15 +54,15 @@ static void ctr_gpio_irqhandler(struct irq_desc *desc)
 	spin_unlock_irqrestore(&gpio->gpioc.bgpio_lock, flags);
 
 	chained_irq_enter(chip, desc);
-	for_each_set_bit(irq, &pending, gpio->ngpios) {
+	for_each_set_bit (irq, &pending, gpio->ngpios) {
 		generic_handle_irq(
 			irq_find_mapping(gpio->gpioc.irq.domain, irq));
 	}
 	chained_irq_exit(chip, desc);
 }
 
-static void ctr_gpio_irq_toggle(struct ctr_gpio *gpio,
-				unsigned irq, unsigned enable)
+static void ctr_gpio_irq_toggle(struct ctr_gpio *gpio, unsigned irq,
+				unsigned enable)
 {
 	u8 mask;
 	unsigned offset;
@@ -164,8 +164,8 @@ static int ctr_gpiointc_probe(struct platform_device *pdev)
 		bgpio_flags = 0;
 	}
 
-	err = bgpio_init(&gpio->gpioc, dev, nregs, gpio->dat,
-			gpio->dat, NULL, gpio->dir, NULL, bgpio_flags);
+	err = bgpio_init(&gpio->gpioc, dev, nregs, gpio->dat, gpio->dat, NULL,
+			 gpio->dir, NULL, bgpio_flags);
 	if (err)
 		return err;
 
@@ -186,8 +186,8 @@ static int ctr_gpiointc_probe(struct platform_device *pdev)
 		girq->chip = &gpio->irqc;
 		girq->parent_handler = ctr_gpio_irqhandler;
 		girq->num_parents = irq_count;
-		girq->parents = devm_kcalloc(dev, irq_count,
-					sizeof(*girq->parents), GFP_KERNEL);
+		girq->parents = devm_kcalloc(
+			dev, irq_count, sizeof(*girq->parents), GFP_KERNEL);
 		if (!girq->parents)
 			return -ENOMEM;
 
@@ -203,7 +203,7 @@ static int ctr_gpiointc_probe(struct platform_device *pdev)
 
 static const struct of_device_id ctr_gpiointc_of_match[] = {
 	{ .compatible = "nintendo," DRIVER_NAME },
-	{ },
+	{},
 };
 MODULE_DEVICE_TABLE(of, ctr_gpiointc_of_match);
 

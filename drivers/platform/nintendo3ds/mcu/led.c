@@ -5,8 +5,8 @@
  * Copyright (C) 2020-2021 Santiago Herrera
  */
 
-#define DRIVER_NAME	"3dsmcu-led"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define DRIVER_NAME "3dsmcu-led"
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/of.h>
 #include <linux/kernel.h>
@@ -38,7 +38,7 @@ static void ctr_led_build_data(u8 *data, u8 r, u8 g, u8 b)
 }
 
 static int ctr_led_brightness_set_blocking(struct led_classdev *cdev,
-					enum led_brightness brightness)
+					   enum led_brightness brightness)
 {
 	u8 data[100];
 	struct ctr_led *led;
@@ -47,11 +47,9 @@ static int ctr_led_brightness_set_blocking(struct led_classdev *cdev,
 	led_mc_calc_color_components(mc_cdev, brightness);
 
 	led = container_of(mc_cdev, struct ctr_led, led);
-	ctr_led_build_data(data,
-		led->subled[0].brightness,
-		led->subled[1].brightness,
-		led->subled[2].brightness
-	);
+	ctr_led_build_data(data, led->subled[0].brightness,
+			   led->subled[1].brightness,
+			   led->subled[2].brightness);
 
 	return regmap_bulk_write(led->map, led->io_addr, data, 100);
 }
@@ -88,7 +86,8 @@ static int ctr_led_probe(struct platform_device *pdev)
 	/* initialize main led class */
 	mc_led->led_cdev.name = dev_name(dev);
 	mc_led->led_cdev.max_brightness = 255;
-	mc_led->led_cdev.brightness_set_blocking = ctr_led_brightness_set_blocking;
+	mc_led->led_cdev.brightness_set_blocking =
+		ctr_led_brightness_set_blocking;
 
 	/* initialize led subchannels */
 	mc_led->num_colors = 3;

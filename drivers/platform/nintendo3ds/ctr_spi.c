@@ -7,7 +7,7 @@
  */
 
 #define DRIVER_NAME "3ds-spi"
-#define pr_fmt(str)	DRIVER_NAME ": " str
+#define pr_fmt(str) DRIVER_NAME ": " str
 
 #include <linux/io.h>
 #include <linux/of.h>
@@ -32,8 +32,8 @@ struct ctr_spi {
 #define SPI_CNT_CHIPSELECT(n)	((n) << 6)
 #define SPI_CNT_XFER_READ	(0 << 13)
 #define SPI_CNT_XFER_WRITE	(1 << 13)
-#define SPI_CNT_BUSY		BIT(15)
-#define SPI_CNT_ENABLE		BIT(15)
+#define SPI_CNT_BUSY	BIT(15)
+#define SPI_CNT_ENABLE	BIT(15)
 
 #define SPI_FIFO_BUSY	BIT(0)
 #define SPI_FIFO_WIDTH	0x20
@@ -50,7 +50,7 @@ static u32 ctr_spi_freq_to_rate(u32 freq)
 	 4 -> 8MHz
 	 5,6,7 -> 16MHz
 	*/
-	return min(ilog2(max_t(u32, freq, 1<<19)>>19), 5);
+	return min(ilog2(max_t(u32, freq, 1 << 19) >> 19), 5);
 }
 
 static void ctr_spi_write_cnt(struct ctr_spi *spi, u32 cnt)
@@ -85,9 +85,9 @@ static u32 ctr_spi_read_status(struct ctr_spi *spi)
 
 static int ctr_spi_wait_busy(struct ctr_spi *spi)
 {
-	long res = wait_event_interruptible_timeout(spi->wq,
-		!(ctr_spi_read_cnt(spi) & SPI_CNT_BUSY), CTR_SPI_TIMEOUT
-	);
+	long res = wait_event_interruptible_timeout(
+		spi->wq, !(ctr_spi_read_cnt(spi) & SPI_CNT_BUSY),
+		CTR_SPI_TIMEOUT);
 
 	if (res > 0)
 		return 0;
@@ -98,7 +98,7 @@ static int ctr_spi_wait_busy(struct ctr_spi *spi)
 
 static int ctr_spi_wait_fifo(struct ctr_spi *spi)
 {
-	while(ctr_spi_read_status(spi) & SPI_FIFO_BUSY)
+	while (ctr_spi_read_status(spi) & SPI_FIFO_BUSY)
 		usleep_range(1, 5);
 	return 0;
 }
@@ -106,19 +106,20 @@ static int ctr_spi_wait_fifo(struct ctr_spi *spi)
 static int ctr_spi_done(struct ctr_spi *spi)
 {
 	int err = ctr_spi_wait_busy(spi);
-	if (err) return err;
+	if (err)
+		return err;
 	iowrite32(0, spi->base + 0x04);
 	return 0;
 }
 
-static void ctr_spi_setup_xfer(struct ctr_spi *spidrv,
-				struct spi_device *spi, bool read)
+static void ctr_spi_setup_xfer(struct ctr_spi *spidrv, struct spi_device *spi,
+			       bool read)
 {
-	ctr_spi_write_cnt(spidrv, SPI_CNT_ENABLE |
-		ctr_spi_freq_to_rate(spi->max_speed_hz) |
-		SPI_CNT_CHIPSELECT(spidrv->cs) |
-		(read ? SPI_CNT_XFER_READ : SPI_CNT_XFER_WRITE)
-	);
+	ctr_spi_write_cnt(
+		spidrv,
+		SPI_CNT_ENABLE | ctr_spi_freq_to_rate(spi->max_speed_hz) |
+			SPI_CNT_CHIPSELECT(spidrv->cs) |
+			(read ? SPI_CNT_XFER_READ : SPI_CNT_XFER_WRITE));
 }
 
 static int ctr_spi_xfer_read(struct ctr_spi *spibus, u32 *buf, u32 len)
@@ -126,10 +127,11 @@ static int ctr_spi_xfer_read(struct ctr_spi *spibus, u32 *buf, u32 len)
 	u32 idx = 0;
 	do {
 		int err = ctr_spi_wait_fifo(spibus);
-		if (err) return err;
+		if (err)
+			return err;
 		*(buf++) = ctr_spi_read_fifo(spibus);
 		idx += 4;
-	} while(idx < len);
+	} while (idx < len);
 
 	return 0;
 }
@@ -139,10 +141,11 @@ static int ctr_spi_xfer_write(struct ctr_spi *spibus, u32 *buf, u32 len)
 	u32 idx = 0;
 	do {
 		int err = ctr_spi_wait_fifo(spibus);
-		if (err) return err;
+		if (err)
+			return err;
 		ctr_spi_write_fifo(spibus, *(buf++));
 		idx += 4;
-	} while(idx < len);
+	} while (idx < len);
 
 	return 0;
 }
@@ -166,10 +169,10 @@ static int ctr_spi_transfer_one(struct spi_master *master,
 
 	if (xfer->tx_buf) {
 		read = false;
-		buf = (u32*)xfer->tx_buf;
+		buf = (u32 *)xfer->tx_buf;
 	} else if (xfer->rx_buf) {
 		read = true;
-		buf = (u32*)xfer->rx_buf;
+		buf = (u32 *)xfer->rx_buf;
 	} else {
 		return -EINVAL;
 	}
@@ -228,8 +231,8 @@ static int ctr_spi_probe(struct platform_device *pdev)
 
 	/* set up the spi device structure */
 	spi->master = master;
-	master->bus_num = pdev->id;
-	master->set_cs = ctr_spi_set_cs;
+	master->bus_num	= pdev->id;
+	master->set_cs	= ctr_spi_set_cs;
 	master->transfer_one = ctr_spi_transfer_one;
 	master->max_transfer_size = ctr_spi_max_transfer_size;
 	master->num_chipselect = 3;
@@ -248,8 +251,8 @@ static int ctr_spi_probe(struct platform_device *pdev)
 	iowrite32(~BIT(0), spi->base + 0x18); // mask
 	iowrite32(~0, spi->base + 0x1C); // acknowledge
 
-	err = devm_request_irq(dev, platform_get_irq(pdev, 0),
-		ctr_spi_irq, 0, DRIVER_NAME, spi);
+	err = devm_request_irq(dev, platform_get_irq(pdev, 0), ctr_spi_irq, 0,
+			       DRIVER_NAME, spi);
 	if (err)
 		return err;
 
@@ -262,7 +265,7 @@ static int ctr_spi_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id ctr_spi_of_match[] = {
-	{ .compatible = "nintendo," DRIVER_NAME, },
+	{ .compatible = "nintendo," DRIVER_NAME },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ctr_spi_of_match);

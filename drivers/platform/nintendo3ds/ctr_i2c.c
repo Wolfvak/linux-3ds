@@ -6,7 +6,7 @@
  */
 
 #define DRIVER_NAME "3ds-i2c"
-#define pr_fmt(fmt)	DRIVER_NAME ": " fmt
+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 
 #include <linux/io.h>
 #include <linux/i2c.h>
@@ -39,34 +39,41 @@ struct ctr_i2c {
 	struct i2c_adapter adap;
 };
 
-static u8 ctr_i2c_read_data(struct ctr_i2c *i2c) {
+static u8 ctr_i2c_read_data(struct ctr_i2c *i2c)
+{
 	return ioread8(i2c->base + 0x00);
 }
 
-static u8 ctr_i2c_read_cnt(struct ctr_i2c *i2c) {
+static u8 ctr_i2c_read_cnt(struct ctr_i2c *i2c)
+{
 	return ioread8(i2c->base + 0x01);
 }
 
-static void ctr_i2c_write_data(struct ctr_i2c *i2c, u8 val) {
+static void ctr_i2c_write_data(struct ctr_i2c *i2c, u8 val)
+{
 	iowrite8(val, i2c->base + 0x00);
 }
 
-static void ctr_i2c_write_cnt(struct ctr_i2c *i2c, u8 val) {
+static void ctr_i2c_write_cnt(struct ctr_i2c *i2c, u8 val)
+{
 	iowrite8(val, i2c->base + 0x01);
 }
 
-static void ctr_i2c_write_cntex(struct ctr_i2c *i2c, u16 cntex) {
+static void ctr_i2c_write_cntex(struct ctr_i2c *i2c, u16 cntex)
+{
 	iowrite16(cntex, i2c->base + 0x02);
 }
 
-static void ctr_i2c_write_scl(struct ctr_i2c *i2c, u16 scl) {
+static void ctr_i2c_write_scl(struct ctr_i2c *i2c, u16 scl)
+{
 	iowrite16(scl, i2c->base + 0x04);
 }
 
 static int ctr_i2c_wait_busy(struct ctr_i2c *i2c)
 {
-	long res = wait_event_interruptible_timeout(i2c->wq,
-		!(ctr_i2c_read_cnt(i2c) & I2C_CNT_BUSY), CTR_I2C_TIMEOUT);
+	long res = wait_event_interruptible_timeout(
+		i2c->wq, !(ctr_i2c_read_cnt(i2c) & I2C_CNT_BUSY),
+		CTR_I2C_TIMEOUT);
 
 	if (res > 0)
 		return 0;
@@ -78,16 +85,16 @@ static int ctr_i2c_wait_busy(struct ctr_i2c *i2c)
 static int ctr_i2c_send(struct ctr_i2c *i2c, u8 byte, unsigned flags)
 {
 	ctr_i2c_write_data(i2c, byte);
-	ctr_i2c_write_cnt(i2c, I2C_CNT_BUSY | I2C_CNT_IRQEN |
-		I2C_CNT_WRITE | flags);
+	ctr_i2c_write_cnt(i2c,
+			  I2C_CNT_BUSY | I2C_CNT_IRQEN | I2C_CNT_WRITE | flags);
 	return ctr_i2c_wait_busy(i2c);
 }
 
 static int ctr_i2c_recv(struct ctr_i2c *i2c, u8 *byte, unsigned flags)
 {
 	int err;
-	ctr_i2c_write_cnt(i2c, I2C_CNT_BUSY | I2C_CNT_IRQEN |
-		I2C_CNT_READ | flags);
+	ctr_i2c_write_cnt(i2c,
+			  I2C_CNT_BUSY | I2C_CNT_IRQEN | I2C_CNT_READ | flags);
 	err = ctr_i2c_wait_busy(i2c);
 	*byte = ctr_i2c_read_data(i2c);
 	return err;
@@ -102,7 +109,8 @@ static int ctr_i2c_msg_read(struct ctr_i2c *i2c, u8 *buf, int len, bool last)
 {
 	int i;
 	for (i = 0; i < len; i++) {
-		unsigned flag = (last && (i==(len-1))) ? I2C_CNT_LAST : I2C_CNT_ERRACK;
+		unsigned flag = (last && (i == (len - 1))) ? I2C_CNT_LAST :
+							     I2C_CNT_ERRACK;
 		if (ctr_i2c_recv(i2c, &buf[i], flag))
 			return i;
 	}
@@ -113,21 +121,22 @@ static int ctr_i2c_msg_write(struct ctr_i2c *i2c, u8 *buf, int len, bool last)
 {
 	int i;
 	for (i = 0; i < len; i++) {
-		unsigned flag = (last && (i==(len-1))) ? I2C_CNT_LAST : 0;
+		unsigned flag = (last && (i == (len - 1))) ? I2C_CNT_LAST : 0;
 		if (ctr_i2c_send(i2c, buf[i], flag))
 			return i;
 
 		if (!(ctr_i2c_read_cnt(i2c) & I2C_CNT_ERRACK)) {
 			ctr_i2c_write_cnt(i2c, I2C_CNT_BUSY | I2C_CNT_IRQEN |
-				I2C_CNT_PAUSE | I2C_CNT_WRITE);
+						       I2C_CNT_PAUSE |
+						       I2C_CNT_WRITE);
 			return i;
 		}
 	}
 	return len;
 }
 
-static int ctr_i2c_master_xfer(struct i2c_adapter *adap,
-				struct i2c_msg *msgs, int num)
+static int ctr_i2c_master_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
+			       int num)
 {
 	int i, plen;
 	struct i2c_msg *msg;
@@ -143,11 +152,13 @@ static int ctr_i2c_master_xfer(struct i2c_adapter *adap,
 			ctr_i2c_select_device(i2c, msg);
 
 		if (msg->len != 0) {
-			bool last = i == (num-1);
+			bool last = i == (num - 1);
 			if (msg->flags & I2C_M_RD) {
-				plen = ctr_i2c_msg_read(i2c, msg->buf, msg->len, last);
+				plen = ctr_i2c_msg_read(i2c, msg->buf, msg->len,
+							last);
 			} else {
-				plen = ctr_i2c_msg_write(i2c, msg->buf, msg->len, last);
+				plen = ctr_i2c_msg_write(i2c, msg->buf,
+							 msg->len, last);
 			}
 
 			if (plen != msg->len)
@@ -201,8 +212,8 @@ static int ctr_i2c_probe(struct platform_device *pdev)
 	if (!i2c->irq)
 		return -EINVAL;
 
-	err = devm_request_irq(dev, i2c->irq,
-		ctr_i2c_irq, 0, dev_name(dev), i2c);
+	err = devm_request_irq(dev, i2c->irq, ctr_i2c_irq, 0, dev_name(dev),
+			       i2c);
 	if (err)
 		return err;
 
@@ -212,11 +223,11 @@ static int ctr_i2c_probe(struct platform_device *pdev)
 	ctr_i2c_write_scl(i2c, 5 << 8);
 
 	/* setup the i2c_adapter */
-	adap->owner		= THIS_MODULE;
+	adap->owner	= THIS_MODULE;
 	strlcpy(adap->name, dev_name(dev), sizeof(adap->name));
 	adap->dev.parent	= dev;
 	adap->dev.of_node	= dev->of_node;
-	adap->algo		= &ctr_i2c_algo;
+	adap->algo	= &ctr_i2c_algo;
 	adap->algo_data	= i2c;
 
 	dev_set_drvdata(dev, i2c);
@@ -231,8 +242,8 @@ static int ctr_i2c_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id ctr_i2c_of_match[] = {
-	{ .compatible = "nintendo," DRIVER_NAME, },
-	{ },
+	{ .compatible = "nintendo," DRIVER_NAME },
+	{},
 };
 MODULE_DEVICE_TABLE(of, ctr_i2c_of_match);
 
