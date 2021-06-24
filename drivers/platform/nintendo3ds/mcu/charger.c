@@ -53,7 +53,8 @@ static int battery_getprop(struct power_supply *psy,
 	switch(psp) {
 		case POWER_SUPPLY_PROP_PRESENT:
 		case POWER_SUPPLY_PROP_ONLINE:
-			val->intval = 1; /* assume there's always a battery present */
+			/* assume there's always a battery present */
+			val->intval = 1;
 			break;
 
 		case POWER_SUPPLY_PROP_STATUS:
@@ -70,8 +71,8 @@ static int battery_getprop(struct power_supply *psy,
 			break;
 
 		case POWER_SUPPLY_PROP_TEMP:
-			val->intval = sign_extend32(data[REG_TEMPERATURE], 7) * 10;
 			/* data is given in tenths of degrees celsius */
+			val->intval = sign_extend32(data[REG_TEMPERATURE], 7) * 10;
 			break;
 
 		case POWER_SUPPLY_PROP_VOLTAGE_NOW:
@@ -103,7 +104,8 @@ static int ac_getprop(struct power_supply *psy,
 			break;
 
 		case POWER_SUPPLY_PROP_ONLINE:
-			val->intval = data[REG_STATUS] & STATUS_AC_PLUGGED ? 1 : 0;
+			val->intval = data[REG_STATUS] & STATUS_AC_PLUGGED
+					? 1 : 0;
 			break;
 
 		default:

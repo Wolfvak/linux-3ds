@@ -82,8 +82,8 @@ static void ctr_accel_update_data(struct ctr_accel *acc)
 }
 
 static int ctr_accel_read_raw(struct iio_dev *indio_dev,
-							struct iio_chan_spec const *chan,
-							int *val, int *val2, long mask)
+				struct iio_chan_spec const *chan,
+				int *val, int *val2, long mask)
 {
 	int err;
 	struct ctr_accel *acc = iio_priv(indio_dev);
@@ -119,8 +119,8 @@ static int ctr_accel_read_raw(struct iio_dev *indio_dev,
 }
 
 static int ctr_accel_write_raw(struct iio_dev *indio_dev,
-								struct iio_chan_spec const *chan,
-								int val, int val2, long mask)
+				struct iio_chan_spec const *chan,
+				int val, int val2, long mask)
 {
 	int err;
 	struct ctr_accel *acc = iio_priv(indio_dev);

@@ -38,7 +38,7 @@ static void ctr_led_build_data(u8 *data, u8 r, u8 g, u8 b)
 }
 
 static int ctr_led_brightness_set_blocking(struct led_classdev *cdev,
-											enum led_brightness brightness)
+					enum led_brightness brightness)
 {
 	u8 data[100];
 	struct ctr_led *led;

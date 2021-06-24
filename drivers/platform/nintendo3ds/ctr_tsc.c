@@ -73,8 +73,8 @@ static int ctr_tsc_write(void *context, const void *data, size_t len)
 }
 
 static int ctr_tsc_gather_write(void *context,
-										const void *reg, size_t reg_len,
-										const void *val, size_t val_len)
+				const void *reg, size_t reg_len,
+				const void *val, size_t val_len)
 {
 	int err;
 	struct spi_transfer xfer[2];

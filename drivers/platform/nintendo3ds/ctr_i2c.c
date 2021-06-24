@@ -65,9 +65,8 @@ static void ctr_i2c_write_scl(struct ctr_i2c *i2c, u16 scl) {
 
 static int ctr_i2c_wait_busy(struct ctr_i2c *i2c)
 {
-	long res = wait_event_interruptible_timeout(
-		i2c->wq, !(ctr_i2c_read_cnt(i2c) & I2C_CNT_BUSY), CTR_I2C_TIMEOUT
-	);
+	long res = wait_event_interruptible_timeout(i2c->wq,
+		!(ctr_i2c_read_cnt(i2c) & I2C_CNT_BUSY), CTR_I2C_TIMEOUT);
 
 	if (res > 0)
 		return 0;
@@ -128,7 +127,7 @@ static int ctr_i2c_msg_write(struct ctr_i2c *i2c, u8 *buf, int len, bool last)
 }
 
 static int ctr_i2c_master_xfer(struct i2c_adapter *adap,
-			struct i2c_msg *msgs, int num)
+				struct i2c_msg *msgs, int num)
 {
 	int i, plen;
 	struct i2c_msg *msg;
@@ -215,7 +214,7 @@ static int ctr_i2c_probe(struct platform_device *pdev)
 	/* setup the i2c_adapter */
 	adap->owner		= THIS_MODULE;
 	strlcpy(adap->name, dev_name(dev), sizeof(adap->name));
-	adap->dev.parent 	= dev;
+	adap->dev.parent	= dev;
 	adap->dev.of_node	= dev->of_node;
 	adap->algo		= &ctr_i2c_algo;
 	adap->algo_data	= i2c;

@@ -30,10 +30,10 @@ struct ctr_spi {
 
 /* CNT register bits */
 #define SPI_CNT_CHIPSELECT(n)	((n) << 6)
-#define SPI_CNT_XFER_READ		(0 << 13)
-#define SPI_CNT_XFER_WRITE		(1 << 13)
-#define SPI_CNT_BUSY			BIT(15)
-#define SPI_CNT_ENABLE			BIT(15)
+#define SPI_CNT_XFER_READ	(0 << 13)
+#define SPI_CNT_XFER_WRITE	(1 << 13)
+#define SPI_CNT_BUSY		BIT(15)
+#define SPI_CNT_ENABLE		BIT(15)
 
 #define SPI_FIFO_BUSY	BIT(0)
 #define SPI_FIFO_WIDTH	0x20
@@ -85,8 +85,8 @@ static u32 ctr_spi_read_status(struct ctr_spi *spi)
 
 static int ctr_spi_wait_busy(struct ctr_spi *spi)
 {
-	long res = wait_event_interruptible_timeout(
-		spi->wq, !(ctr_spi_read_cnt(spi) & SPI_CNT_BUSY), CTR_SPI_TIMEOUT
+	long res = wait_event_interruptible_timeout(spi->wq,
+		!(ctr_spi_read_cnt(spi) & SPI_CNT_BUSY), CTR_SPI_TIMEOUT
 	);
 
 	if (res > 0)
@@ -112,7 +112,7 @@ static int ctr_spi_done(struct ctr_spi *spi)
 }
 
 static void ctr_spi_setup_xfer(struct ctr_spi *spidrv,
-							struct spi_device *spi, bool read)
+				struct spi_device *spi, bool read)
 {
 	ctr_spi_write_cnt(spidrv, SPI_CNT_ENABLE |
 		ctr_spi_freq_to_rate(spi->max_speed_hz) |
@@ -154,8 +154,8 @@ static void ctr_spi_set_cs(struct spi_device *spi, bool enable)
 }
 
 static int ctr_spi_transfer_one(struct spi_master *master,
-								struct spi_device *spi,
-								struct spi_transfer *xfer)
+				struct spi_device *spi,
+				struct spi_transfer *xfer)
 {
 	int err;
 	bool read;

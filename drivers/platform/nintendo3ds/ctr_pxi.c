@@ -72,7 +72,7 @@ static int pxi_check_err(struct pxi_host *pxi) {
 }
 
 static int pxi_txrx(struct pxi_host *pxi, const u32 *ww,
-					int nw, u32 *wr, int nr)
+			int nw, u32 *wr, int nr)
 {
 	long err;
 
@@ -80,8 +80,8 @@ static int pxi_txrx(struct pxi_host *pxi, const u32 *ww,
 	mutex_lock(&pxi->fifo_lock);
 
 	while(nw > 0) { // send
-		err = wait_event_interruptible_timeout(
-			pxi->fifo_wq, !(pxi_tx_full(pxi)), PXI_FIFO_TIMEOUT
+		err = wait_event_interruptible_timeout(pxi->fifo_wq,
+			!(pxi_tx_full(pxi)), PXI_FIFO_TIMEOUT
 		);
 		if (unlikely(err <= 0)) {
 			err = -ETIMEDOUT;
@@ -96,8 +96,8 @@ static int pxi_txrx(struct pxi_host *pxi, const u32 *ww,
 	}
 
 	while(nr > 0) { // recv
-		err = wait_event_interruptible_timeout(
-			pxi->fifo_wq, !(pxi_rx_empty(pxi)), PXI_FIFO_TIMEOUT
+		err = wait_event_interruptible_timeout(pxi->fifo_wq,
+			!(pxi_rx_empty(pxi)), PXI_FIFO_TIMEOUT
 		);
 		if (unlikely(err <= 0)) {
 			err = -ETIMEDOUT;
@@ -141,7 +141,7 @@ static void pxi_initialize_host(struct pxi_host *pxi)
  * Protocol interface helpers
  */
 static inline int vpxi_multiread_reg(struct pxi_host *pxi, int nr,
-										u32 dev, u32 *regs, u32 *data)
+					u32 dev, u32 *regs, u32 *data)
 {
 	int i;
 	for (i = 0; i < nr; i++)
@@ -150,7 +150,7 @@ static inline int vpxi_multiread_reg(struct pxi_host *pxi, int nr,
 }
 
 static inline int vpxi_multiwrite_reg(struct pxi_host *pxi, int nw,
-										u32 dev, u32 *regdata)
+					u32 dev, u32 *regdata)
 {
 	int i;
 	for (i = 0; i < nw; i++)
@@ -159,13 +159,13 @@ static inline int vpxi_multiwrite_reg(struct pxi_host *pxi, int nw,
 }
 
 static int vpxi_read_reg(struct pxi_host *pxi,
-							u32 dev, u32 reg, u32 *val)
+			u32 dev, u32 reg, u32 *val)
 {
 	return vpxi_multiread_reg(pxi, 1, dev, &reg, val);
 }
 
 static int vpxi_write_reg(struct pxi_host *pxi,
-							u32 dev, u32 reg, u32 val)
+			u32 dev, u32 reg, u32 val)
 {
 	u32 cmd[2] = {reg, val};
 	return vpxi_multiwrite_reg(pxi, 1, dev, cmd);
@@ -184,8 +184,8 @@ static u32 vpxi_generation(struct virtio_device *vdev)
 }
 
 /* TODO: add optimized versions that read on 1, 2 and 4 byte chunks */
-static void vpxi_get_config(struct virtio_device *vdev, unsigned offset,
-							void *buf, unsigned len)
+static void vpxi_get_config(struct virtio_device *vdev,
+			unsigned offset, void *buf, unsigned len)
 {
 	int i;
 	u8 *bytes;
@@ -209,8 +209,8 @@ static void vpxi_get_config(struct virtio_device *vdev, unsigned offset,
 	}
 }
 
-static void vpxi_set_config(struct virtio_device *vdev, unsigned offset,
-							const void *buf, unsigned len)
+static void vpxi_set_config(struct virtio_device *vdev,
+			unsigned offset, const void *buf, unsigned len)
 {
 	int i, err;
 	u32 cmd[16];
@@ -288,8 +288,8 @@ static void vpxi_del_vqs(struct virtio_device *vdev)
 }
 
 static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
-					unsigned index, void (*callback)(struct virtqueue *vq),
-					const char *name, bool ctx)
+			unsigned index, void (*callback)(struct virtqueue *vq),
+			const char *name, bool ctx)
 {
 	int err;
 	u32 vregs[10];
@@ -309,12 +309,14 @@ static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
 		return ERR_PTR(err);
 
 	if (vregs[0] != 0) {
-		pr_err("queue %d is already enabled on device %d", index, vpd->id);
+		pr_err("queue %d is already enabled on device %d",
+			index, vpd->id);
 		return ERR_PTR(-ENOENT);
 	}
 
 	if (vregs[1] == 0) {
-		pr_err("queue %d is zero on dev %d", index, vpd->id);
+		pr_err("queue %d is zero on dev %d",
+			index, vpd->id);
 		return ERR_PTR(-ENOENT);
 	}
 
@@ -323,7 +325,7 @@ static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
 		return ERR_PTR(-ENOMEM);
 
 	vq = vring_create_virtqueue(index, vregs[1], VPXI_VRING_ALIGN, vdev,
-				 false, true, ctx, vpxi_notify, callback, name);
+				false, true, ctx, vpxi_notify, callback, name);
 	if (!vq) {
 		devm_kfree(pxi->dev, info);
 		return ERR_PTR(-ENOMEM);
@@ -361,11 +363,11 @@ static struct virtqueue *vpxi_setup_vq(struct virtio_device *vdev,
 }
 
 static int vpxi_find_vqs(struct virtio_device *vdev, unsigned nvqs,
-						struct virtqueue *vqs[],
-						vq_callback_t *callbacks[],
-						const char * const names[],
-						const bool *ctx,
-						struct irq_affinity *desc)
+			struct virtqueue *vqs[],
+			vq_callback_t *callbacks[],
+			const char * const names[],
+			const bool *ctx,
+			struct irq_affinity *desc)
 {
 	int i, queue_idx = 0;
 
@@ -375,8 +377,8 @@ static int vpxi_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 			continue;
 		}
 
-		vqs[i] = vpxi_setup_vq(vdev, queue_idx++, callbacks[i], names[i],
-								ctx ? ctx[i] : false);
+		vqs[i] = vpxi_setup_vq(vdev, queue_idx++, callbacks[i],
+					names[i], ctx ? ctx[i] : false);
 		if (IS_ERR(vqs[i])) {
 			vpxi_del_vqs(vdev);
 			return PTR_ERR(vqs[i]);
@@ -456,7 +458,8 @@ static void vpxi_irq_worker(struct work_struct *work)
 	struct pxi_host *pxi = container_of(work, struct pxi_host, irq_worker);
 
 	any = 0;
-	for (i = 0; i < VPXI_MAX_IRQBANK; i++) { /* get all pending interrupts */
+	for (i = 0; i < VPXI_MAX_IRQBANK; i++) {
+		/* get all pending interrupts */
 		pending[i] = vpxi_get_irqbank(pxi, i);
 		any |= pending[i];
 	}
@@ -520,7 +523,8 @@ static int pxi_init_virtio(struct pxi_host *pxi)
 		return err;
 
 	pxi->version = vdata[0];
-	if ((pxi->version < VPXI_VERSION_MIN) || (pxi->version > VPXI_VERSION_MAX))
+	if ((pxi->version < VPXI_VERSION_MIN) ||
+	    (pxi->version > VPXI_VERSION_MAX))
 		return -ENOTSUPP;
 
 	pxi->vpd_count = vdata[1];

@@ -62,7 +62,7 @@ static void ctr_gpio_irqhandler(struct irq_desc *desc)
 }
 
 static void ctr_gpio_irq_toggle(struct ctr_gpio *gpio,
-								unsigned irq, unsigned enable)
+				unsigned irq, unsigned enable)
 {
 	u8 mask;
 	unsigned offset;
@@ -165,7 +165,7 @@ static int ctr_gpiointc_probe(struct platform_device *pdev)
 	}
 
 	err = bgpio_init(&gpio->gpioc, dev, nregs, gpio->dat,
-					gpio->dat, NULL, gpio->dir, NULL, bgpio_flags);
+			gpio->dat, NULL, gpio->dir, NULL, bgpio_flags);
 	if (err)
 		return err;
 
@@ -187,7 +187,7 @@ static int ctr_gpiointc_probe(struct platform_device *pdev)
 		girq->parent_handler = ctr_gpio_irqhandler;
 		girq->num_parents = irq_count;
 		girq->parents = devm_kcalloc(dev, irq_count,
-									sizeof(*girq->parents), GFP_KERNEL);
+					sizeof(*girq->parents), GFP_KERNEL);
 		if (!girq->parents)
 			return -ENOMEM;
 

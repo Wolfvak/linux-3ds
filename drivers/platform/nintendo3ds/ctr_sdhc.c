@@ -189,10 +189,13 @@ static irqreturn_t ctr_sdhc_thread_irq(int irq, void *dev_id)
 	dev_dbg(host->dev, "count: %08x, flags %08x\n", count,
 		data->flags);
 
-	if (data->flags & MMC_DATA_READ)
-		ioread16_rep(host->regs + SDHC_DATA16_FIFO_PORT, buf, count >> 1);
-	else
-		iowrite16_rep(host->regs + SDHC_DATA16_FIFO_PORT, buf, count >> 1);
+	if (data->flags & MMC_DATA_READ) {
+		ioread16_rep(host->regs + SDHC_DATA16_FIFO_PORT,
+			buf, count >> 1);
+	} else {
+		iowrite16_rep(host->regs + SDHC_DATA16_FIFO_PORT,
+			buf, count >> 1);
+	}
 
 	sg_miter->consumed = count;
 	sg_miter_stop(sg_miter);
@@ -270,7 +273,8 @@ static irqreturn_t ctr_sdhc_irq(int irq, void *dev_id)
 	} else if (int_reg & SDHC_ERR_CRC_FAIL) {
 		error = -EILSEQ;
 	} else if (int_reg & SDHC_ERR_MASK) {
-		dev_err(host->dev, "buffer error: %08X\n", int_reg & SDHC_ERR_MASK);
+		dev_err(host->dev, "buffer error: %08X\n",
+			int_reg & SDHC_ERR_MASK);
 		dev_err(host->dev, "detail error status %08X\n",
 			ioread32(host->regs + SDHC_ERROR_STATUS));
 		error = -EIO;
@@ -395,7 +399,9 @@ static void ctr_sdhc_start_data(struct ctr_sdhc *host, struct mmc_data *data)
 {
 	unsigned int flags = SG_MITER_ATOMIC;
 
-	dev_dbg(host->dev, "setup data transfer: blocksize %08x  nr_blocks %d, offset: %08x\n",
+	dev_dbg(host->dev,
+		"setup data transfer: blocksize %08x "
+		"nr_blocks %d, offset: %08x\n",
 		data->blksz, data->blocks, data->sg->offset);
 
 	host->data = data;
@@ -456,7 +462,8 @@ static int ctr_sdhc_get_ro(struct mmc_host *mmc)
 static int ctr_sdhc_get_cd(struct mmc_host *mmc)
 {
 	struct ctr_sdhc *host = mmc_priv(mmc);
-	return !!(ioread16(host->regs + SDHC_IRQ_STAT) & SDHC_STAT_CARDPRESENT);
+	return !!(ioread16(host->regs + SDHC_IRQ_STAT) &
+		SDHC_STAT_CARDPRESENT);
 }
 
 static void ctr_sdhc_enable_sdio_irq(struct mmc_host *mmc, int enable)
@@ -548,13 +555,13 @@ static int ctr_sdhc_probe(struct platform_device *pdev)
 	ctr_sdhc_reset(host);
 
 	ret = devm_request_threaded_irq(dev, platform_get_irq(pdev, 0),
-									ctr_sdhc_irq, ctr_sdhc_thread_irq,
-									IRQF_SHARED, DRIVER_NAME, host);
+					ctr_sdhc_irq, ctr_sdhc_thread_irq,
+					IRQF_SHARED, DRIVER_NAME, host);
 	if (ret)
 		goto free_mmc;
 
 	ret = devm_request_irq(dev, platform_get_irq(pdev, 1),
-						ctr_sdhc_sdio_irq, 0, DRIVER_NAME, host);
+				ctr_sdhc_sdio_irq, 0, DRIVER_NAME, host);
 	if (ret)
 		goto free_mmc;
 

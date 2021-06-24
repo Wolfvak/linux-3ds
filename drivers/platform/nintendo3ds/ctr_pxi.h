@@ -88,7 +88,8 @@
 #define VPXI_REG_MANAGER_IRQ_VQUEUE(b)	VPXI_REG_MANAGER(0x08 + ((b) & 3))
 #define VPXI_REG_MANAGER_IRQ_CONFIG(b)	VPXI_REG_MANAGER(0x0C + ((b) & 3))
 
-#define VPXI_MAX_IRQBANK	(VPXI_MAXDEV / 32) /* 32 int bits per register */
+/* 32 int bits per register */
+#define VPXI_MAX_IRQBANK	(VPXI_MAXDEV / 32)
 
 #define to_vpxi_dev(_vd) \
 	container_of(_vd, struct virtio_pxi_dev, vdev)
