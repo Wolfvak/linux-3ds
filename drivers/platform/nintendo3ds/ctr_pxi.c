@@ -480,7 +480,7 @@ static void vpxi_irq_worker(struct work_struct *work)
 		if (pending_mask & BIT(qirq)) {
 			unsigned long flags;
 			spin_lock_irqsave(&vpd->lock, flags);
-			list_for_each_entry (info, &vpd->vqs, node)
+			list_for_each_entry(info, &vpd->vqs, node)
 				vring_interrupt(0, info->vq);
 			spin_unlock_irqrestore(&vpd->lock, flags);
 		}

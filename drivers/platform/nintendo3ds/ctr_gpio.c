@@ -54,7 +54,7 @@ static void ctr_gpio_irqhandler(struct irq_desc *desc)
 	spin_unlock_irqrestore(&gpio->gpioc.bgpio_lock, flags);
 
 	chained_irq_enter(chip, desc);
-	for_each_set_bit (irq, &pending, gpio->ngpios) {
+	for_each_set_bit(irq, &pending, gpio->ngpios) {
 		generic_handle_irq(
 			irq_find_mapping(gpio->gpioc.irq.domain, irq));
 	}

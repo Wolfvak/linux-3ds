@@ -157,7 +157,7 @@ static const struct iio_info ctr_accel_ops = {
 		}, \
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
 		.info_mask_shared_by_type = \
-			BIT(IIO_CHAN_INFO_SCALE) | BIT(IIO_CHAN_INFO_ENABLE),                                           \
+			BIT(IIO_CHAN_INFO_SCALE) | BIT(IIO_CHAN_INFO_ENABLE),  \
 	}
 
 static const struct iio_chan_spec ctr_accel_channels[] = {

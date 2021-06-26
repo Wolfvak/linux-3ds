@@ -210,7 +210,7 @@ static void ctr_sdhc_respend_irq(struct ctr_sdhc *host)
 		return;
 	}
 
-	respbuf = (u32 *)cmd->resp;
+	respbuf = (u32*)cmd->resp;
 	host->cmd = NULL;
 
 	for (i = 0, reg = SDHC_CMD_RESPONSE; i < 4; i++, reg += 4)

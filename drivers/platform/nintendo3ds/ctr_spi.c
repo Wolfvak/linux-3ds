@@ -32,8 +32,8 @@ struct ctr_spi {
 #define SPI_CNT_CHIPSELECT(n)	((n) << 6)
 #define SPI_CNT_XFER_READ	(0 << 13)
 #define SPI_CNT_XFER_WRITE	(1 << 13)
-#define SPI_CNT_BUSY	BIT(15)
-#define SPI_CNT_ENABLE	BIT(15)
+#define SPI_CNT_BUSY		BIT(15)
+#define SPI_CNT_ENABLE		BIT(15)
 
 #define SPI_FIFO_BUSY	BIT(0)
 #define SPI_FIFO_WIDTH	0x20
@@ -169,10 +169,10 @@ static int ctr_spi_transfer_one(struct spi_master *master,
 
 	if (xfer->tx_buf) {
 		read = false;
-		buf = (u32 *)xfer->tx_buf;
+		buf = (u32*)xfer->tx_buf;
 	} else if (xfer->rx_buf) {
 		read = true;
-		buf = (u32 *)xfer->rx_buf;
+		buf = (u32*)xfer->rx_buf;
 	} else {
 		return -EINVAL;
 	}
