@@ -50,5 +50,8 @@
 
 	chosen {
 		bootargs = "keep_bootcon fbcon=rotate:1";
+		// At the end of the CTR fcram
+		linux,initrd-start = <0x27800000>;
+		linux,initrd-end = <0x28000000>; // 8 MiB
 	};
 };
