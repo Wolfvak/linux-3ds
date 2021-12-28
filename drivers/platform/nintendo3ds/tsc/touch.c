@@ -5171,7 +5171,6 @@ const struct font_desc font_10x18 = {
 
 #define HIGHLIGHT_COLOR 0xFF0000
 #define COLOR_BLACK		0x000000
-#define COLOR_GRAY      0x444444
 #define COLOR_WHITE		0xFFFFFF
 void nintendo3ds_bottom_lcd_clear_screen(unsigned int color);
 int nintendo3ds_bottom_lcd_draw_text(const struct font_desc *font, int x, int y, unsigned int fgcolor, unsigned int bgcolor, const char *text);
