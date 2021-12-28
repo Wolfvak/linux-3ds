@@ -22,6 +22,9 @@
 #include <linux/font.h>
 #include <asm/io.h>
 
+// offsets so that the keyboard is centered
+#define X_OFFSET 15
+#define Y_OFFSET 21
 
 #define HIGHLIGHT_COLOR 0xFF0000
 #define COLOR_BLACK		0x000000
@@ -108,19 +111,19 @@ static void vkb_draw_key(const struct vkb_ctx_t *vkb, int row, int col) {
 	if(vkb->shifted) {
 		if(vkb_map_shift[row][col]) {
 			if (row == 0 || row == 5 || vkb_map_normal[row][col][1] != '\0')
-				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col], row * vkb->font->height * 2, COLOR_BLACK, color,
+				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col] + X_OFFSET, row * vkb->font->height * 2 + Y_OFFSET, COLOR_BLACK, color,
 						                               vkb_map_shift[row][col]);
 			else
-				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col], row * vkb->font->height * 2, color, COLOR_BLACK, 
+				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col] + X_OFFSET, row * vkb->font->height * 2 + Y_OFFSET, color, COLOR_BLACK, 
 						                               vkb_map_shift[row][col]);
 		}
 	} else {
 		if(vkb_map_normal[row][col]) {
 			if (row == 0 || row == 5 || vkb_map_normal[row][col][1] != '\0')
-				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col], row * vkb->font->height * 2, COLOR_BLACK, color,
+				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col] + X_OFFSET, row * vkb->font->height * 2 + Y_OFFSET, COLOR_BLACK, color,
 						                               vkb_map_normal[row][col]);
 			else
-				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col], row * vkb->font->height * 2, color, COLOR_BLACK, 
+				nintendo3ds_bottom_lcd_draw_text(vkb->font, vkb->x_offsets[row][col] + X_OFFSET, row * vkb->font->height * 2 + Y_OFFSET, color, COLOR_BLACK, 
 						                               vkb_map_normal[row][col]);
 		}
 	}
@@ -286,10 +289,10 @@ static void touch_input_poll(struct input_dev *input)
 			for(j = 0; j < VKB_ROWS; j++) {
 				for(i = 0; i < VKB_COLS; i++) {
 					if(vkb->x_sizes[j][i] > 0 &&
-					   screen_touch_x >= vkb->x_offsets[j][i] &&
-					   screen_touch_x < vkb->x_offsets[j][i] + vkb->x_sizes[j][i] &&
-					   screen_touch_y >= j * vkb->font->height * 2 &&
-					   screen_touch_y < (j + 1) * vkb->font->height * 2) {
+					   screen_touch_x >= vkb->x_offsets[j][i] + X_OFFSET &&
+					   screen_touch_x < vkb->x_offsets[j][i] + X_OFFSET + vkb->x_sizes[j][i] &&
+					   screen_touch_y >= j * vkb->font->height * 2 + Y_OFFSET &&
+					   screen_touch_y < (j + 1) * vkb->font->height * 2 + Y_OFFSET) {
 						touch_hid->pendown = true;
 
 						touch_hid->touch_jiffies = jiffies;
