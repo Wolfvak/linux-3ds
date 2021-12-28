@@ -289,10 +289,10 @@ static void touch_input_poll(struct input_dev *input)
 			for(j = 0; j < VKB_ROWS; j++) {
 				for(i = 0; i < VKB_COLS; i++) {
 					if(vkb->x_sizes[j][i] > 0 &&
-					   screen_touch_x >= vkb->x_offsets[j][i] + X_OFFSET &&
-					   screen_touch_x < vkb->x_offsets[j][i] + X_OFFSET + vkb->x_sizes[j][i] &&
-					   screen_touch_y >= j * vkb->font->height * 2 + Y_OFFSET &&
-					   screen_touch_y < (j + 1) * vkb->font->height * 2 + Y_OFFSET) {
+					   screen_touch_x >= vkb->x_offsets[j][i] + X_OFFSET - (vkb->font->width / 2) &&
+					   screen_touch_x < vkb->x_offsets[j][i] + X_OFFSET + vkb->x_sizes[j][i] - (vkb->font->width / 2) &&
+					   screen_touch_y >= j * vkb->font->height * 2 + Y_OFFSET - (vkb->font->height / 2) &&
+					   screen_touch_y < (j + 1) * vkb->font->height * 2 + Y_OFFSET - (vkb->font->height / 2)) {
 						touch_hid->pendown = true;
 
 						touch_hid->touch_jiffies = jiffies;
