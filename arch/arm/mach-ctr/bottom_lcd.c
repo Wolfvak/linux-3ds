@@ -119,8 +119,10 @@ int nintendo3ds_bottom_lcd_draw_text(const struct font_desc *font, int x, int y,
 			x = sx;
 			y += font->height;
 		} else if (c == ' ') {
+			nintendo3ds_bottom_lcd_draw_fillrect(x, y, font->width, font->height, bgcolor);
 			x += font->width;
 		} else if(c == '\t') {
+			nintendo3ds_bottom_lcd_draw_fillrect(x, y, font->width * 4, font->height, bgcolor);
 			x += 4 * font->width;
 		} else {
 			nintendo3ds_bottom_lcd_draw_fillrect(x, y, font->width, font->height, bgcolor);
