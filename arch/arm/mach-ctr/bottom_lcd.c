@@ -91,19 +91,19 @@ void nintendo3ds_bottom_lcd_clear_screen(unsigned int color)
 
 void nintendo3ds_bottom_lcd_draw_char(const struct font_desc *font, int x, int y, unsigned int color, char c)
 {
-	int i, j;
-	const u16 *src;
-	const u8 bytes_per_char = 36;//font->charcount / sizeof font->data; // (doesn't work)
+    int i, j, k;
+    int bytes_per_char = DIV_ROUND_UP(font->width, 8) * font->height;
+    const u8 *src = (u8 *)font->data + c * bytes_per_char;
 
-	src = font->data + c * bytes_per_char;
-
-	for (i = 0; i < 18; i++) {
-		for (j = 0; j < 16; j++) {
-			if ((*src & (128 >> j)))
-				nintendo3ds_bottom_lcd_draw_pixel(x+j, y+i, color);
-		}
-		src++;
-	}
+    for (i = 0; i < font->height; i++) {
+        for (j = 0; j < font->width;) {
+            for (k = 0; j < font->width && k < 8; j++, k++) {
+                if (*src & BIT(7 - k))
+                    nintendo3ds_bottom_lcd_draw_pixel(x + j, y + i, color);
+            }
+            src++;
+        }
+    }
 }
 
 int nintendo3ds_bottom_lcd_draw_text(const struct font_desc *font, int x, int y, unsigned int fgcolor, unsigned int bgcolor, const char *text)
