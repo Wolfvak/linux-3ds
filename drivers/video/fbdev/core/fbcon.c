@@ -997,7 +997,10 @@ static const char *fbcon_startup(void)
 	/* Setup default font */
 	if (!p->fontdata && !vc->vc_font.data) {
 		if (!fontname[0] || !(font = find_font(fontname)))
-			font = find_font("VGA8x8");
+			font = get_default_font(info->var.xres,
+						info->var.yres,
+						info->pixmap.blit_x,
+						info->pixmap.blit_y);
 		vc->vc_font.width = font->width;
 		vc->vc_font.height = font->height;
 		vc->vc_font.data = (void *)(p->fontdata = font->data);
@@ -1073,7 +1076,10 @@ static void fbcon_init(struct vc_data *vc, int init)
 			const struct font_desc *font = NULL;
 
 			if (!fontname[0] || !(font = find_font(fontname)))
-				font = find_font("VGA8x8");
+				font = get_default_font(info->var.xres,
+							info->var.yres,
+							info->pixmap.blit_x,
+							info->pixmap.blit_y);
 			vc->vc_font.width = font->width;
 			vc->vc_font.height = font->height;
 			vc->vc_font.data = (void *)(p->fontdata = font->data);
@@ -2488,7 +2494,8 @@ static int fbcon_set_def_font(struct vc_data *vc, struct console_font *font, cha
 	const struct font_desc *f;
 
 	if (!name)
-		f = find_font("VGA8x8");
+		f = get_default_font(info->var.xres, info->var.yres,
+				     info->pixmap.blit_x, info->pixmap.blit_y);
 	else if (!(f = find_font(name)))
 		return -ENOENT;
 
