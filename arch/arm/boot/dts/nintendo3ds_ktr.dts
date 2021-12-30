@@ -49,7 +49,7 @@
 	};
 
 	chosen {
-		bootargs = "keep_bootcon fbcon=rotate:1";
+		bootargs = "keep_bootcon fbcon=rotate:1 fbcon=font:VGA8x8";
 		// At the end of the CTR fcram
 		linux,initrd-start = <0x27800000>;
 		linux,initrd-end = <0x28000000>; // 8 MiB
