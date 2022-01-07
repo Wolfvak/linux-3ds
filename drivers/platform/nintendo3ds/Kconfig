@@ -75,6 +75,14 @@ config CTR_I2C
 	  Nintendo 3DS I2C bus driver.
 
 
+config CTR_BL
+	tristate "Nintendo 3DS backlight driver"
+	depends on ARCH_CTR
+	default y
+	help
+	  TODO
+
+
 config CTR_MCU
 	tristate "Nintendo 3DS MCU interface"
 	depends on CTR_I2C
