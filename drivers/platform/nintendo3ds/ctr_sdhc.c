@@ -40,6 +40,7 @@ enum {
 
 #define SDHC_IRQMASK \
 	(SDHC_STAT_CARDREMOVE | SDHC_STAT_CARDINSERT | \
+	 SDHC_STAT_DATA_END | \
 	 SDHC_ERR_MASK | SDHC_STAT_CMDRESPEND)
 
 #define SDHC_DEFAULT_CARDOPT \
@@ -90,26 +91,47 @@ static void __ctr_sdhc_set_ios(struct ctr_sdhc *host, struct mmc_ios *ios)
 
 static void ctr_sdhc_dma_unmap(struct ctr_sdhc*, struct mmc_data*);
 
-static void ctr_sdhc_finish_request(struct ctr_sdhc *host, int err)
+static void ctr_sdhc_check_done(struct ctr_sdhc *host, int err)
 {
+	u32 stat;
 	struct mmc_request *mrq = host->mrq;
 	if (!mrq)
 		return;
 
-	if (err < 0 && mrq->cmd)
-		mrq->cmd->error = err;
+	stat = atomic_read(&host->stat);
 
-	if (host->mrq->data) {
-		ctr_sdhc_dma_unmap(host, host->mrq->data);
+	if (stat & SDHC_FULL_DONE)
+		return;
+
+	u32 expected = SDHC_CMD_DONE | (mrq->data ? (SDHC_SD_DONE | SDHC_DMAC_DONE) : 0);
+
+	if (expected == stat || (err < 0)) {
+		struct mmc_command *cmd = mrq->cmd;
+		struct mmc_data *data = mrq->data;
+
+		atomic_or(SDHC_FULL_DONE, &host->stat); // mark as fully processed
+
+		if (err < 0 && cmd)
+			cmd->error = err;
+
+		if (data) {
+			ctr_sdhc_dma_unmap(host, data);
+		}
+
+		mmc_request_done(host->mmc, mrq);
+		host->mrq = NULL;
 	}
-
-	mmc_request_done(host->mmc, mrq);
-	host->mrq = NULL;
 }
 
 static void ctr_sdhc_respend_irq(struct ctr_sdhc *host, u32 irqstat)
 {
-	struct mmc_command *cmd = host->mrq->cmd;
+	struct mmc_request *mrq = host->mrq;
+	struct mmc_command *cmd;
+
+	if (!mrq)
+		return;
+
+	cmd = mrq->cmd;
 
 	if (!(irqstat & SDHC_STAT_CMDRESPEND))
 		return;
@@ -138,11 +160,7 @@ static void ctr_sdhc_respend_irq(struct ctr_sdhc *host, u32 irqstat)
 	dev_dbg(host->dev, "command IRQ complete %d %d %x\n", cmd->opcode,
 		cmd->error, cmd->flags);
 
-	/* finish the request in the data handler if there is any */
-	if (host->mrq->data)
-		return;
-
-	ctr_sdhc_finish_request(host, 0);
+	atomic_or(SDHC_CMD_DONE, &host->stat);
 }
 
 static int ctr_sdhc_card_hotplug_irq(struct ctr_sdhc *host, u32 irqstat)
@@ -152,10 +170,20 @@ static int ctr_sdhc_card_hotplug_irq(struct ctr_sdhc *host, u32 irqstat)
 
 	/* finish any pending requests and do a full hw reset */
 	ctr_sdhc_reset(host);
-	if (!(irqstat & SDHC_STAT_CARDPRESENT))
-		ctr_sdhc_finish_request(host, -ENOMEDIUM);
+	if (!(irqstat & SDHC_STAT_CARDPRESENT)) {
+		ctr_sdhc_check_done(host, -ENOMEDIUM);
+	}
 	mmc_detect_change(host->mmc, 1);
 	return 1;
+}
+
+static void ctr_sdhc_dataend_irq(struct ctr_sdhc *host, u32 irqstat)
+{
+	if (irqstat & SDHC_STAT_DATA_END) {
+		// mark the SD data xfer as done
+		atomic_or(SDHC_SD_DONE, &host->stat);
+		// dev_err(host->dev, "ctr_sdhc_dataend_irq: %08X\n", irqstat);
+	}
 }
 
 static irqreturn_t ctr_sdhc_irq_thread(int irq, void *data)
@@ -203,6 +231,9 @@ static irqreturn_t ctr_sdhc_irq_thread(int irq, void *data)
 	}
 
 	ctr_sdhc_respend_irq(host, irqstat);
+	ctr_sdhc_dataend_irq(host, irqstat);
+
+	ctr_sdhc_check_done(host, 0);
 
 irq_end:
 	mutex_unlock(&host->lock);
@@ -252,7 +283,8 @@ static void ctr_sdhc_dma_callback(void *async_param)
 
 	// dev_err(host->dev, "DMA callback finished!\n");
 
-	ctr_sdhc_finish_request(host, data->error);
+	atomic_or(SDHC_DMAC_DONE, &host->stat);
+	ctr_sdhc_check_done(host, data->error);
 }
 
 
@@ -371,6 +403,8 @@ static int ctr_sdhc_start_request(struct ctr_sdhc *host,
 
 	cmd_op = cmd->opcode;
 	cmd_reg = cmd_op;
+
+	atomic_set(&host->stat, 0);
 
 	if (cmd_op == MMC_STOP_TRANSMISSION) {
 		/*

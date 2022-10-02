@@ -157,6 +157,11 @@ enum {
 #define SDHC_CARD_OPTION_TIMEOUT(x)	(((x) & 15) << 4)
 #define SDHC_CARD_OPTION_RETRIES(x)	((x) & 15)
 
+#define SDHC_CMD_DONE	BIT(0)
+#define SDHC_SD_DONE	BIT(1)
+#define SDHC_DMAC_DONE	BIT(2)
+#define SDHC_FULL_DONE	BIT(3)
+
 struct ctr_sdhc {
 	struct device *dev;
 	void __iomem *regs;
@@ -168,6 +173,8 @@ struct ctr_sdhc {
 
 	/* transfer being handled */
 	struct mmc_request *mrq;
+
+	atomic_t stat;
 
 	u32 fifo_addr;
 	dma_cookie_t dma_cookie;
