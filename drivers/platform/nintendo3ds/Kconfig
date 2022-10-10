@@ -60,6 +60,10 @@ config CTR_TSC_TOUCH
 	tristate "Nintendo 3DS touchscreen/circlepad driver"
 	depends on CTR_TSC
 	select INPUT_POLLDEV
+	select FB
+	select FRAMEBUFFER_CONSOLE
+	select FONTS
+	select FONT_10x18
 	default y
 	help
 	  TODO
