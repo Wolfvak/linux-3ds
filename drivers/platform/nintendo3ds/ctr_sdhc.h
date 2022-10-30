@@ -5,6 +5,9 @@
  *  Copyright (C) 2021 Santiago Herrera
  */
 
+#ifndef CTR_SDHC_H
+#define CTR_SDHC_H
+
 /*
  * SD CMD flags
  */
@@ -128,18 +131,29 @@ enum {
 #define SDHC_CARD_OPTION_TIMEOUT(x)	(((x) & 15) << 4)
 #define SDHC_CARD_OPTION_RETRIES(x)	((x) & 15)
 
+#define SDHC_CMD_DONE	BIT(0)
+#define SDHC_SD_DONE	BIT(1)
+#define SDHC_DMAC_DONE	BIT(2)
+#define SDHC_FULL_DONE	BIT(3)
+
 struct ctr_sdhc {
 	struct device *dev;
 	void __iomem *regs;
 
+	struct mutex lock;
+
 	struct mmc_host *mmc;
 	struct clk *sdclk;
 
-	spinlock_t lock;
-
+	/* transfer being handled */
 	struct mmc_request *mrq;
-	struct mmc_command *cmd;
-	struct mmc_data *data;
 
-	struct sg_mapping_iter sg_miter;
+	atomic_t stat;
+
+	u32 fifo_addr;
+	dma_cookie_t dma_cookie;
+	struct dma_chan *dma_chan;
+	struct dma_async_tx_descriptor *txdesc;
 };
+
+#endif /* CTR_SDHC_H */

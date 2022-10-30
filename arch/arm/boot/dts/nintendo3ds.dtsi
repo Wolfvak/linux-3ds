@@ -26,6 +26,21 @@
 
 		interrupt-parent = <&gic>;
 
+		sdcard: sdhc-controller@10100000 {
+			compatible = "nintendo,3ds-sdhc";
+			reg = <0x10100000 0x200>;
+			fifo-addr = <0x10300000>;
+
+			dmas = <&cdma 5>;
+			dma-names = "fifo";
+
+			interrupts =
+				<GIC_SPI 0x22 IRQ_TYPE_EDGE_RISING>,
+				<GIC_SPI 0x23 IRQ_TYPE_EDGE_RISING>;
+
+			clocks = <&sdclk>;
+		};
+
 		/* Main syscon blocks */
 		cfg: syscon@10140000 {
 			compatible = "nintendo,3ds-cfg-syscon", "syscon";
@@ -52,6 +67,10 @@
 		nwm: sdhc-controller@10122000 {
 			compatible = "nintendo,3ds-sdhc";
 			reg = <0x10122000 0x200>;
+			fifo-addr = <0x10322000>;
+
+			dmas = <&cdma 4>;
+			dma-names = "fifo";
 
 			interrupts =
 				<GIC_SPI 0x20 IRQ_TYPE_EDGE_RISING>,
@@ -60,7 +79,6 @@
 			clocks = <&sdclk>;
 
 			cap-sdio-irq;
-			cap-sd-highspeed;
 		};
 
 		gpio0: gpio-controller@10147000 {
@@ -307,7 +325,7 @@
 			};
 		};
 
-		pxi: virtio-bridge@10163000 {
+		/*pxi: virtio-bridge@10163000 {
 			compatible = "nintendo,3ds-pxi";
 			reg = <0x10163000 0x10>;
 
@@ -315,7 +333,7 @@
 				<GIC_SPI 0x30 IRQ_TYPE_EDGE_RISING>,
 				<GIC_SPI 0x32 IRQ_TYPE_EDGE_RISING>,
 				<GIC_SPI 0x33 IRQ_TYPE_EDGE_RISING>;
-		};
+		};*/
 
 		timer: twd-timer@17e00600 {
 			compatible = "arm,arm11mp-twd-timer";
@@ -361,9 +379,16 @@
 			clock-names = "apb_pclk";
 
 			interrupts =
-				<GIC_SPI 0x19 IRQ_TYPE_LEVEL_HIGH>,
-				<GIC_SPI 0x1A IRQ_TYPE_LEVEL_HIGH>,
-				<GIC_SPI 0x1B IRQ_TYPE_LEVEL_HIGH>;
+				<GIC_SPI 0x10 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x11 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x12 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x13 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x14 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x15 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x16 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x17 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x18 IRQ_TYPE_LEVEL_HIGH>,
+				<GIC_SPI 0x19 IRQ_TYPE_LEVEL_HIGH>;
 
 			#dma-cells = <1>;
 			#dma-channels = <8>;
