@@ -55,3 +55,13 @@
 		linux,initrd-end = <0x28000000>; // 8 MiB
 	};
 };
+
+&sc16is7xx {
+	/*
+	 * The new3DS has a SC16IS760 UART
+	 * Override the default choice of SC16IS750
+	 * It doesn't make much of a difference since you
+	 * can't really use the fast mode via I2C but w/e
+	 */
+	compatible = "nxp,sc16is760";
+};

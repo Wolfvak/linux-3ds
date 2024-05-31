@@ -125,6 +125,20 @@
 
 			interrupt-controller;
 			#interrupt-cells = <2>;
+
+			txrc_ir_hog {
+				gpio-hog;
+				gpios = <4 GPIO_ACTIVE_HIGH>;
+				output-low;
+				line-name = "IR_TXRC";
+			};
+
+			rx_ir_hog {
+				gpio-hog;
+				gpios = <5 0>;
+				input;
+				line-name = "IR_RXD";
+			};
 		};
 
 		gpio4: gpio-controller@10147028 {
@@ -241,7 +255,7 @@
 
 			interrupts = <GIC_SPI 0x3C IRQ_TYPE_EDGE_RISING>;
 
-			sc16is750: infrared@4d {
+			sc16is7xx: infrared@4d {
 				compatible = "nxp,sc16is750";
 				reg = <0x4d>;
 				clocks = <&irclk>;
@@ -250,6 +264,18 @@
 
 				gpio-controller;
 				#gpio-cells = <2>;
+
+				/*
+				 * The SC16IS7X0 is connected to a ROHM RPM841 IrDA module
+				 * This module has a PWDOWN input that needs to be
+				 * kept low if we want data to come through
+				 */
+				pwdown_low_hog {
+					gpio-hog;
+					gpios = <0 GPIO_ACTIVE_HIGH>;
+					output-low;
+					line-name = "PWDOWN";
+				};
 			};
 		};
 
